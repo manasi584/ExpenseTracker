@@ -1,9 +1,9 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import React from "react";
-import { Colors } from "@/constants/Colors";
 import CardHeader from "@/components/CardHeader";
-import { Image } from "expo-image";
+import { Colors } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const Page = () => {
   return (
@@ -15,16 +15,16 @@ const Page = () => {
           <View style={{ display: "flex" }}>
             <Image
               source={require('@/assets/images/icon.png')}
-              style={{ width: 20, height: 20, marginLeft: 32, resizeMode: 'contain', marginBottom: -38, zIndex: 50, bottom: 12 }}
+              style={{ width: 20, height: 20, marginLeft: 32, contentFit: 'contain', marginBottom: -38, zIndex: 50, bottom: 12 }}
             />
             <Image
               source={require('@/assets/svgs/savipayvisa.svg')}
-              style={{ width: 200, height: 200, marginRight: 50, resizeMode: 'contain', marginBottom: -99, zIndex: 10 }}
+              style={{ width: 200, height: 200, marginRight: 50, contentFit: 'contain', marginBottom: -99, zIndex: 10 }}
             />
           </View>
           <Image
             source={require('@/assets/svgs/visa.svg')}
-            style={{ width: 200, height: 200, marginLeft: 60, resizeMode: 'contain', marginTop: -50 }}
+            style={{ width: 200, height: 200, marginLeft: 60, contentFit: 'contain', marginTop: -50 }}
           />
         </View>
 
@@ -38,7 +38,7 @@ const Page = () => {
           <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 40, marginLeft: -12, }}>
             <Image
               source={require('@/assets/svgs/wallet.svg')}
-              style={{ width: 45, height: 50, resizeMode: "contain" }}
+              style={{ width: 45, height: 50, contentFit: "contain" }}
             />
             <View style={{}}>
               <Text style={{

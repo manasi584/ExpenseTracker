@@ -1,9 +1,9 @@
-import { View, Text, StyleSheet, ScrollView, Button, TouchableOpacity } from 'react-native'
-import React from 'react'
 import Header from '@/components/Header'
+import Hr from '@/components/ui/Hr'
 import { Colors } from '@/constants/Colors'
 import { Image } from 'expo-image'
-import Hr from '@/components/ui/Hr'
+import React from 'react'
+import { Button, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 const HomeScreen = () => {
 
@@ -106,7 +106,7 @@ const HomeScreen = () => {
               <TouchableOpacity style={styles.buttons}>
                 <Image
                   source={require('@/assets/svgs/airtime.svg')}
-                  style={{ width: 20, height: 20, marginRight: 10, resizeMode: 'contain' }}
+                  style={{ width: 20, height: 20, marginRight: 10, contentFit: 'contain' }}
                 />
                 <Text style={styles.text}>Airtime</Text>
               </TouchableOpacity>
@@ -114,7 +114,7 @@ const HomeScreen = () => {
               <TouchableOpacity style={styles.buttons}>
                 <Image
                   source={require('@/assets/svgs/bills.svg')}
-                  style={{ width: 20, height: 20, marginRight: 10, resizeMode: 'contain' }}
+                  style={{ width: 20, height: 20, marginRight: 10, contentFit: 'contain' }}
                 />
                 <Text style={styles.text}>Bills</Text>
               </TouchableOpacity>
@@ -234,7 +234,7 @@ const HomeScreen = () => {
             <TouchableOpacity style={styles.more}>
               <Image
                 source={require('@/assets/svgs/search.svg')}
-                style={{ width: 25, height: 25, resizeMode: "contain" }}
+                style={{ width: 25, height: 25, contentFit: "contain" }}
               />
               <Text style={styles.text}>View More</Text>
             </TouchableOpacity>

@@ -1,10 +1,10 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native'
-import React from 'react'
-import { Colors } from '@/constants/Colors'
 import SendHeader from '@/components/SendHeader'
 import Hr from '@/components/ui/Hr'
-import { Image } from 'expo-image'
+import { Colors } from '@/constants/Colors'
 import { Ionicons } from '@expo/vector-icons'
+import { Image } from 'expo-image'
+import React from 'react'
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 const Send = () => {
   return (
@@ -41,7 +41,7 @@ const Send = () => {
             }}>
               <Image
                 source={require('@/assets/svgs/r.svg')}
-                style={{ width: 45, height: 45, marginRight: 10, resizeMode: 'contain' }}
+                style={{ width: 45, height: 45, marginRight: 10, contentFit: 'contain' }}
               />
               <Text style={styles.text2}>
                 Rasheedat Omotoso
@@ -56,7 +56,7 @@ const Send = () => {
             }}>
               <Image
                 source={require('@/assets/svgs/t.svg')}
-                style={{ width: 45, height: 45, marginRight: 10, resizeMode: 'contain' }}
+                style={{ width: 45, height: 45, marginRight: 10, contentFit: 'contain' }}
               />
               <Text style={styles.text2}>
                 Tiamiyu Yinka
@@ -71,7 +71,7 @@ const Send = () => {
             }}>
               <Image
                 source={require('@/assets/svgs/s.svg')}
-                style={{ width: 45, height: 45, marginRight: 10, resizeMode: 'contain' }}
+                style={{ width: 45, height: 45, marginRight: 10, contentFit: 'contain' }}
               />
               <Text style={styles.text2}>
                 Sunday Babayaro
@@ -86,7 +86,7 @@ const Send = () => {
             }}>
               <Image
                 source={require('@/assets/svgs/k.svg')}
-                style={{ width: 45, height: 45, marginRight: 10, resizeMode: 'contain' }}
+                style={{ width: 45, height: 45, marginRight: 10, contentFit: 'contain' }}
               />
               <Text style={styles.text2}>
                 Kenechukwu Uche
@@ -101,7 +101,7 @@ const Send = () => {
             }}>
               <Image
                 source={require('@/assets/svgs/o.svg')}
-                style={{ width: 45, height: 45, marginRight: 10, resizeMode: 'contain' }}
+                style={{ width: 45, height: 45, marginRight: 10, contentFit: 'contain' }}
               />
               <Text style={styles.text2}>
                 Okoye Innocent
@@ -195,7 +195,7 @@ const Send = () => {
           <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 20, marginLeft: -12, justifyContent: "space-between" }}>
             <Image
               source={require('@/assets/svgs/airtime.svg')}
-              style={{ width: 30, height: 30, resizeMode: "contain", marginLeft: 10 }}
+              style={{ width: 30, height: 30, contentFit: "contain", marginLeft: 10 }}
             />
             <View style={{ marginLeft: -68}}>
               <Text style={{
@@ -228,7 +228,7 @@ const Send = () => {
           <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 20, justifyContent: "space-between" }}>
             <Image
               source={require('@/assets/svgs/bills.svg')}
-              style={{ width: 25, height: 25, resizeMode: "contain" }}
+              style={{ width: 25, height: 25, contentFit: "contain" }}
             />
             <View style={{marginLeft: -68}}>
               <Text style={{
@@ -260,7 +260,7 @@ const Send = () => {
           <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 20, marginLeft: -12, justifyContent: "space-between" }}>
             <Image
               source={require('@/assets/svgs/card.svg')}
-              style={{ width: 35, height: 35, resizeMode: "contain", marginLeft: 10 }}
+              style={{ width: 35, height: 35, contentFit: "contain", marginLeft: 10 }}
             />
             <View style={{marginLeft: -56}}>
               <Text style={{

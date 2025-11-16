@@ -1,11 +1,11 @@
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React from 'react'
-import { Colors } from '@/constants/Colors'
+import { UserHeader } from '@/components/Header'
 import MoreHeader from '@/components/MoreHeader'
 import Hr from '@/components/ui/Hr'
-import { UserHeader } from '@/components/Header'
+import { Colors } from '@/constants/Colors'
 import { Ionicons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
+import React from 'react'
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 const Page = () => {
   return (
@@ -21,7 +21,7 @@ const Page = () => {
           <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 20, marginLeft: -12, justifyContent: "space-between" }}>
             <Image
               source={require('@/assets/images/icon.png')}
-              style={{ width: 80, height: 80, resizeMode: "contain", marginLeft: -10 }}
+              style={{ width: 80, height: 80, contentFit: "contain", marginLeft: -10 }}
             />
             <View style={{ marginLeft: -68 }}>
               <Text style={{
@@ -48,7 +48,7 @@ const Page = () => {
           <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: "space-between" }}>
             <Image
               source={require('@/assets/svgs/str.svg')}
-              style={{ width: 40, height: 45, resizeMode: "contain" }}
+              style={{ width: 40, height: 45, contentFit: "contain" }}
             />
             <View style={{ marginLeft: -68 }}>
               <Text style={{
@@ -85,7 +85,7 @@ const Page = () => {
           <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 20, marginLeft: -12, justifyContent: "space-between" }}>
             <Image
               source={require('@/assets/svgs/scards.svg')}
-              style={{ width: 45, height: 45, resizeMode: "contain", marginLeft: 10 }}
+              style={{ width: 45, height: 45, contentFit: "contain", marginLeft: 10 }}
             />
             <View style={{ marginLeft: -56 }}>
               <Text style={{

@@ -1,8 +1,8 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
-import React from 'react'
 import InvestHeader from '@/components/InvestHeader'
 import { Colors } from '@/constants/Colors'
 import { Image } from 'expo-image'
+import React from 'react'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 const Invest = () => {
   return (
@@ -22,7 +22,7 @@ const Invest = () => {
       <View style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: "center", marginTop: 10, gap: 10 }}>
         <Image
           source={require('@/assets/svgs/chart.svg')}
-          style={{ width: 200, height: 200, marginRight: 10, resizeMode: 'contain' }}
+          style={{ width: 200, height: 200, marginRight: 10, contentFit: 'contain' }}
         />
         <Text style={styles.text2}>Invest with SaviPay</Text>
         <Text style={styles.text3}>Choose an option below to grow your money. please remember that investments fluctuate and kuda doesn’t give investment advice. </Text>
@@ -39,14 +39,14 @@ const Invest = () => {
           <View style={styles.buttons2}>
             <Image
               source={require('@/assets/svgs/cs1.svg')}
-              style={{ width: 100, height: 20, marginLeft: 8, resizeMode: 'contain' }}
+              style={{ width: 100, height: 20, marginLeft: 8, contentFit: 'contain' }}
             />
             <Text style={styles.text4}>Managed Funds</Text>
             <Text style={styles.text6}>Invest in professionally managed products.</Text>
           </View>
           <Image
             source={require('@/assets/svgs/pie-cs.svg')}
-            style={{ width: 50, height: 50, marginRight: 10, resizeMode: 'contain' }}
+            style={{ width: 50, height: 50, marginRight: 10, contentFit: 'contain' }}
           />
         </TouchableOpacity>
       </View>
