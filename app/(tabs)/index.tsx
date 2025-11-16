@@ -1,8 +1,10 @@
+import AuthHeader from '@/components/AuthHeader'
 import Header from '@/components/Header'
 import { Colors } from '@/constants/Colors'
+import { useAuth } from '@/hooks/useAuth'
 import { Image } from 'expo-image'
 import React, { useState } from 'react'
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 const currencies = {
   INR: { label: 'Indian Rupee', symbol: '₹', flag: require('@/assets/svgs/indian.svg') },
@@ -27,6 +29,20 @@ const SPENT = 5000; // sample
 
 const HomeScreen = () => {
   const [currency, setCurrency] = useState<'INR'|'USD'|'CNY'>('INR')
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.black }}>
+        <ActivityIndicator size="large" color={Colors.tintColor} />
+      </View>
+    );
+  }
+
+  if (!user) {
+    return <AuthHeader />;
+  }
+
   const symbol = currencies[currency].symbol
   const remaining = BUDGET - SPENT
   const progress = Math.min(1, SPENT / BUDGET)
@@ -305,7 +321,7 @@ const styles = StyleSheet.create({
     height: 28,
     marginBottom: 6,
     tintColor: Colors.white,
-    resizeMode: 'contain',
+    contentFit: 'contain',
   },
   overviewValue: {
     color: Colors.white,

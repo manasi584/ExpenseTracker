@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "SaviPay",
-    "slug": "SaviPay",
+    "name": "Expense-ive",
+    "slug": "Expense-ive",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "savipay",
+    "icon": "./assets/svgs/logo.svg",
+    "scheme": "Expense-ive",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -13,7 +13,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/svgs/logo.svg",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
@@ -22,14 +22,14 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/svgs/logo.svg"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/icon.png",
+          "image": "./assets/svgs/logo.svg",
           "imageWidth": 200,
           "contentFit": "contain",
           "backgroundColor": "#ffffff"

@@ -79,12 +79,12 @@ const App = () => {
     <SafeAreaView style={styles.container}>
       {loadingRedirect ? (
         <Animated.View style={[styles.splash, { opacity: fadeAnim }]}>
-          <Text style={styles.redirectText}>Redirecting...</Text>
+          <Text style={styles.redirectText}>Loading...</Text>
         </Animated.View>
       ) : (
         <>
           <Image
-            source={{ uri: 'https://i.pravatar.cc/250?u=12' }}
+            source={require('@/assets/images/images.jpeg')}
             style={styles.avatar}
           />
           <Text style={styles.title}>Welcome Back</Text>
