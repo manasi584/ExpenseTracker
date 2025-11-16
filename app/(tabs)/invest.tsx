@@ -1,54 +1,167 @@
 import InvestHeader from '@/components/InvestHeader'
 import { Colors } from '@/constants/Colors'
+import { Ionicons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
-import React from 'react'
+import React, { useState } from 'react'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
+const sampleExpenses = [
+  { id: '1', title: 'Expense 1', note: 'Groceries', time: '4:06 PM', amount: 1500 },
+  { id: '2', title: 'Expense 2', note: 'Transport', time: '10:15 AM', amount: 500 },
+  { id: '3', title: 'Expense 3', note: 'Freelance (income)', time: '8:05 AM', amount: -2000 }, // negative = income
+];
+
+const investmentOptions = [
+  { id: 'i1', name: 'High Yield Savings', desc: 'Low risk, stable returns', min: 500 },
+  { id: 'i2', name: 'Index Fund', desc: 'Diversified stock exposure', min: 1000 },
+  { id: 'i3', name: 'Corporate Bonds', desc: 'Fixed income, moderate risk', min: 2000 },
+];
+
+const currencies = {
+  INR: { label: 'Indian Rupee', symbol: '₹', flag: require('@/assets/svgs/indian.svg') },
+  USD: { label: 'US Dollar', symbol: '$', flag: require('@/assets/svgs/us.svg') },
+  CNY: { label: 'Chinese Yuan', symbol: '¥', flag: require('@/assets/svgs/china.svg') },
+}
+
+const MONTHLY_BUDGET = 20000
+const SPENT = 5000
+
 const Invest = () => {
+  const [currency, setCurrency] = useState<'INR'|'USD'|'CNY'>('INR')
+  const symbol = currencies[currency].symbol
+  const remaining = MONTHLY_BUDGET - SPENT
+  const progressPct = Math.min(1, SPENT / MONTHLY_BUDGET) * 100
+
   return (
     <>
       <InvestHeader />
 
-      <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', marginTop: 10, gap: 10 }}>
-        <TouchableOpacity style={styles.buttons}>
-          <Text style={styles.text}>Home</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.buttons}>
-          <Text style={styles.text1}>US Stocks</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: "center", marginTop: 10, gap: 10 }}>
-        <Image
-          source={require('@/assets/svgs/chart.svg')}
-          style={{ width: 200, height: 200, marginRight: 10, contentFit: 'contain' }}
-        />
-        <Text style={styles.text2}>Invest with SaviPay</Text>
-        <Text style={styles.text3}>Choose an option below to grow your money. please remember that investments fluctuate and kuda doesn’t give investment advice. </Text>
-      </View>
-
-      <View style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginTop: 10, gap: 10 }}>
-
-        <TouchableOpacity style={styles.buttons2}>
-          <Text style={styles.text4}>US Stocks</Text>
-          <Text style={styles.text5}>Trade thousands of US stocks with as little as $10</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.buttons1}>
-          <View style={styles.buttons2}>
-            <Image
-              source={require('@/assets/svgs/cs1.svg')}
-              style={{ width: 100, height: 20, marginLeft: 8, contentFit: 'contain' }}
-            />
-            <Text style={styles.text4}>Managed Funds</Text>
-            <Text style={styles.text6}>Invest in professionally managed products.</Text>
+      <View style={styles.container}>
+        {/* Currency header (flag + selector) */}
+        <View style={{ paddingVertical: 10, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <Image source={currencies[currency].flag} style={{ width: 30, height: 30 }} />
+            <Text style={{ color: Colors.white, fontSize: 16, fontWeight: 'bold' }}>{currencies[currency].label}</Text>
           </View>
-          <Image
-            source={require('@/assets/svgs/pie-cs.svg')}
-            style={{ width: 50, height: 50, marginRight: 10, contentFit: 'contain' }}
-          />
-        </TouchableOpacity>
+          <View style={{ flexDirection: 'row', marginLeft: 'auto', gap: 8 }}>
+            { (Object.keys(currencies) as (keyof typeof currencies)[]).map(k => (
+              <TouchableOpacity key={k} onPress={() => setCurrency(k)} style={{ padding: 6 }}>
+                <Image source={currencies[k].flag} style={{ width: 24, height: 24, opacity: currency === k ? 1 : 0.45 }} />
+              </TouchableOpacity>
+            )) }
+          </View>
+        </View>
+
+        <View style={styles.summaryCard}>
+          <View style={styles.summaryTop}>
+            <Text style={styles.summaryLabel}>This Month</Text>
+            <TouchableOpacity style={styles.settingsBtn}>
+              <Ionicons name="ellipsis-vertical" size={18} color={Colors.white} />
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.budgetAmount}>{symbol}{MONTHLY_BUDGET.toLocaleString()}</Text>
+
+          <View style={styles.row}>
+            <View>
+              <Text style={styles.smallLabel}>Spent</Text>
+              <Text style={styles.spent}>{symbol}{SPENT.toLocaleString()}</Text>
+            </View>
+
+            <View>
+              <Text style={styles.smallLabel}>Remaining</Text>
+              <Text style={styles.remaining}>{symbol}{remaining.toLocaleString()}</Text>
+            </View>
+          </View>
+
+          <View style={styles.progressBar}>
+            <View style={[styles.progressFill, { width: `${progressPct}%` }]} />
+          </View>
+
+          <View style={styles.actions}>
+            <TouchableOpacity style={styles.actionBtn}>
+              <Ionicons name="remove" size={16} color={Colors.white} />
+              <Text style={styles.actionText}>Add Expense</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.actionBtn}>
+              <Ionicons name="add" size={16} color={Colors.white} />
+              <Text style={styles.actionText}>Add Income</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={[styles.actionBtn, styles.ghostBtn]}>
+              <Ionicons name="settings-outline" size={16} color={Colors.white} />
+              <Text style={styles.actionText}>Set Budget</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.categories}>
+          <Text style={styles.sectionTitle}>Categories</Text>
+          <View style={styles.catRow}>
+            <TouchableOpacity style={styles.catBtn}>
+              <Image source={require('@/assets/svgs/wallet.svg')} style={styles.catIcon} />
+              <Text style={styles.catText}>Wallet</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.catBtn}>
+              <Image source={require('@/assets/svgs/airtime.svg')} style={styles.catIcon} />
+              <Text style={styles.catText}>Airtime</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.catBtn}>
+              <Image source={require('@/assets/svgs/bills.svg')} style={styles.catIcon} />
+              <Text style={styles.catText}>Bills</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.catBtn}>
+              <Image source={require('@/assets/svgs/send.svg')} style={styles.catIcon} />
+              <Text style={styles.catText}>Send</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Investment options section */}
+        <View style={styles.investSection}>
+          <Text style={styles.sectionTitle}>Investment Options</Text>
+          {investmentOptions.map((opt) => (
+            <View key={opt.id} style={styles.investCard}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.investTitle}>{opt.name}</Text>
+                <Text style={styles.investDesc}>{opt.desc}</Text>
+                <Text style={styles.investMin}>{`Min: ${symbol}${opt.min.toLocaleString()}`}</Text>
+              </View>
+              <TouchableOpacity style={styles.investCTA}>
+                <Text style={styles.ctaText}>Invest</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.recent}>
+          <Text style={styles.sectionTitle}>Recent Activity</Text>
+
+          {sampleExpenses.map((t) => {
+            const isIncome = t.amount < 0
+            return (
+              <View key={t.id} style={styles.txRow}>
+                <Image source={require('@/assets/svgs/gtco.svg')} style={styles.txIcon} />
+                <View style={styles.txText}>
+                  <Text style={styles.txTitle}>{t.title}</Text>
+                  <Text style={styles.txNote}>{t.note} • {t.time}</Text>
+                </View>
+                <Text style={[styles.txAmount, isIncome ? styles.income : styles.expense]}>
+                  {isIncome ? '+' : symbol}{Math.abs(t.amount).toLocaleString()}
+                </Text>
+              </View>
+            )
+          })}
+
+          <TouchableOpacity style={styles.viewMore}>
+            <Image source={require('@/assets/svgs/search.svg')} style={{ width: 20, height: 20, marginRight: 8 }} />
+            <Text style={styles.viewMoreText}>View All Transactions</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </>
   )
@@ -60,98 +173,202 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.black,
+    paddingHorizontal: 16,
+    paddingTop: 12,
   },
-  button: {
+  summaryCard: {
+    backgroundColor: '#0f1720',
+    borderRadius: 12,
+    padding: 16,
+  },
+  summaryTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  summaryLabel: {
+    color: Colors.gray,
+    fontSize: 13,
+  },
+  settingsBtn: {
+    padding: 6,
+  },
+  budgetAmount: {
+    color: Colors.white,
+    fontSize: 28,
+    fontWeight: '700',
+    marginTop: 8,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 12,
+  },
+  smallLabel: {
+    color: Colors.gray,
+    fontSize: 12,
+  },
+  spent: {
+    color: Colors.white,
+    fontSize: 16,
+    fontWeight: '700',
+    marginTop: 4,
+  },
+  remaining: {
+    color: Colors.tintColor,
+    fontSize: 16,
+    fontWeight: '700',
+    marginTop: 4,
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: '#142127',
+    borderRadius: 8,
+    marginTop: 12,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: Colors.tintColor,
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 14,
+  },
+  actionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.grey,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  ghostBtn: {
+    backgroundColor: '#11161a',
+  },
+  actionText: {
+    color: Colors.white,
+    marginLeft: 8,
+    fontWeight: '700',
+  },
+  categories: {
+    marginTop: 18,
+  },
+  sectionTitle: {
+    color: Colors.white,
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  catRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  catBtn: {
+    backgroundColor: Colors.grey,
+    padding: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    width: '23%',
+  },
+  catIcon: {
+    width: 26,
+    height: 26,
+    marginBottom: 6,
+  },
+  catText: {
+    color: Colors.white,
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  investSection: {
+    marginTop: 18,
+  },
+  investCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0d1417',
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  investTitle: {
+    color: Colors.white,
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  investDesc: {
+    color: Colors.gray,
+    fontSize: 13,
+    marginTop: 4,
+  },
+  investMin: {
+    color: Colors.gray,
+    fontSize: 12,
+    marginTop: 6,
+  },
+  investCTA: {
+    backgroundColor: Colors.tintColor,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    marginLeft: 12,
+  },
+  ctaText: {
+    color: Colors.white,
+    fontWeight: '700',
+  },
+  recent: {
+    marginTop: 18,
+    marginBottom: 40,
+  },
+  txRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#071012',
+  },
+  txIcon: {
+    width: 40,
+    height: 40,
+  },
+  txText: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  txTitle: {
+    color: Colors.white,
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  txNote: {
+    color: Colors.gray,
+    fontSize: 13,
+    marginTop: 4,
+  },
+  txAmount: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  expense: {
+    color: Colors.white,
+  },
+  income: {
+    color: Colors.green,
+  },
+  viewMore: {
+    marginTop: 16,
     flexDirection: 'row',
     backgroundColor: Colors.grey,
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    width: '48%',
   },
-  buttons: {
-    flexDirection: 'row',
-    backgroundColor: Colors.grey,
-    padding: 5,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttons1: {
-    flexDirection: 'row',
-    backgroundColor: Colors.grey,
-    padding: 5,
-    borderRadius: 8,
-    justifyContent: "space-between",
-    alignItems: "center"
-  },
-  buttons2: {
-    flexDirection: 'column',
-    backgroundColor: Colors.grey,
-    padding: 5,
-    borderRadius: 8,
-    // width: "100%",
-    alignItems: "flex-start"
-  },
-  text: {
-    color: '#fff',
-    marginLeft: 8,
-    fontWeight: 'semibold',
-    fontSize: 16,
-    textAlign: 'center',
-  },
-  text1: {
-    color: Colors.gray,
-    marginLeft: 8,
-    fontWeight: 'semibold',
-    fontSize: 16,
-    textAlign: 'center',
-  },
-  text2: {
+  viewMoreText: {
     color: Colors.white,
-    marginLeft: 8,
-    fontWeight: 'bold',
-    fontSize: 18,
-    textAlign: 'center',
+    fontWeight: '700',
   },
-  text3: {
-    color: Colors.light.icon,
-    marginTop: 20,
-    fontSize: 18,
-    textAlign: 'center',
-  },
-  text4: {
-    color: Colors.white,
-    padding: 10,
-    fontSize: 18,
-    textAlign: 'center',
-  },
-  text5: {
-    color: Colors.gray,
-    marginLeft: 8,
-    fontWeight: 'semibold',
-    fontSize: 15,
-    maxWidth: 329,
-  },
-  text6: {
-    color: Colors.gray,
-    marginLeft: 8,
-    fontWeight: 'semibold',
-    fontSize: 15,
-    maxWidth: 260,
-  },
-  more: {
-    display: "flex",
-    flexDirection: 'row',
-    backgroundColor: Colors.grey,
-    padding: 10,
-    borderRadius: 8,
-    marginTop: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '54%',
-    marginLeft: "25%",
-    marginBottom: 10,
-  },
-});
+})

@@ -2,23 +2,24 @@ import Header from '@/components/Header'
 import Hr from '@/components/ui/Hr'
 import { Colors } from '@/constants/Colors'
 import { Image } from 'expo-image'
-import React from 'react'
+import React, { useState } from 'react'
 import { Button, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
+const currencies = {
+  INR: { label: 'Indian Rupee', symbol: '₹', flag: require('@/assets/svgs/indian.svg') },
+  USD: { label: 'US Dollar', symbol: '$', flag: require('@/assets/svgs/us.svg') },
+  CNY: { label: 'Chinese Yuan', symbol: '¥', flag: require('@/assets/svgs/china.svg') },
+}
+
 const HomeScreen = () => {
+  const [currency, setCurrency] = useState<'INR'|'USD'|'CNY'>('INR')
+  const symbol = currencies[currency].symbol
 
   return (
     <>
       <Header />
       <View style={[styles.container]}>
         <ScrollView showsVerticalScrollIndicator={false}>
-          {/* <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          > */}
           <View style={{
             flexDirection: "row",
             justifyContent: "flex-start",
@@ -34,24 +35,24 @@ const HomeScreen = () => {
             <Button title="Save" color={Colors.grey} />
             <Button title="Borrow" color={Colors.grey} />
           </View>
-          <View style={{ paddingVertical: 10, paddingHorizontal: 20, alignItems: 'flex-start', display: 'flex', flexDirection: 'row', gap: 10 }}>
-            <Image
-              source={require('@/assets/svgs/indian.svg')}
-              style={{ width: 30, height: 30 }}
-            />
-            <View style={{ alignItems: 'flex-start', display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', gap: 45 }}>
-              <Text style={{ color: Colors.white, fontSize: 16, fontWeight: 'bold', marginTop: 5 }}>
-                Indian Rupee
-              </Text>
+          <View style={{ paddingVertical: 10, paddingHorizontal: 20, alignItems: 'center', flexDirection: 'row', gap: 12 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <Image source={currencies[currency].flag} style={{ width: 30, height: 30 }} />
+              <Text style={{ color: Colors.white, fontSize: 16, fontWeight: 'bold' }}>{currencies[currency].label}</Text>
+            </View>
+
+            <View style={{ flexDirection: 'row', marginLeft: 'auto', gap: 8 }}>
+              { (Object.keys(currencies) as (keyof typeof currencies)[]).map((k) => (
+                <TouchableOpacity key={k} onPress={() => setCurrency(k)} style={{ padding: 6 }}>
+                  <Image source={currencies[k].flag} style={{ width: 24, height: 24, opacity: currency === k ? 1 : 0.45 }} />
+                </TouchableOpacity>
+              )) }
             </View>
           </View>
-          {/* </View> */}
           <View style={{ flexDirection: 'column', paddingHorizontal: 20, }}>
             <View style={{ alignItems: 'flex-start', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', gap: 10 }}>
-              <Text
-                style={{ color: Colors.white, fontSize: 36, fontWeight: 700 }}
-              >
-                ₹11,475.<Text style={{ fontSize: 22, fontWeight: 400 }}>00</Text>
+              <Text style={{ color: Colors.white, fontSize: 36, fontWeight: 700 }}>
+                {symbol}11,475.<Text style={{ fontSize: 22, fontWeight: 400 }}>00</Text>
               </Text>
 
               <Image
@@ -164,7 +165,7 @@ const HomeScreen = () => {
                 fontWeight: 'bold',
                 fontSize: 16,
                 textAlign: 'center',
-              }}>₹1,500</Text>
+              }}>{symbol}1,500</Text>
             </View>
             <Hr />
 
@@ -196,7 +197,7 @@ const HomeScreen = () => {
                 fontWeight: 'bold',
                 fontSize: 16,
                 textAlign: 'center',
-              }}>₹500</Text>
+              }}>{symbol}500</Text>
             </View>
             <Hr />
 
@@ -228,7 +229,7 @@ const HomeScreen = () => {
                 fontWeight: 'bold',
                 fontSize: 16,
                 textAlign: 'center',
-              }}>+₹2,000</Text>
+              }}>+{symbol}2,000</Text>
             </View>
 
             <TouchableOpacity style={styles.more}>
