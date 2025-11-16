@@ -50,7 +50,7 @@ const Page = () => {
 			<View style={styles.container}>
 				<View style={styles.promoCard}>
 					<Image
-						source={require("@/assets/svgs/visa.svg")}
+						source={require("@/assets/svgs/credit-card.svg")}
 						style={styles.cardImage}
 					/>
 					<Text style={styles.headline}>Get your Benefits Card</Text>
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
 	},
 	cardImage: {
 		width: 220,
-		height: 120,
+		height: 220,
 		marginBottom: 8,
 	},
 	headline: {
