@@ -3,216 +3,224 @@ import { Colors } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-const sampleExpenses = [
-  { id: '1', title: 'Expense 1', detail: 'Groceries', time: '4:06 PM', amount: 1500 },
-  { id: '2', title: 'Expense 2', detail: 'Transport', time: '10:15 AM', amount: 500 },
-  { id: '3', title: 'Expense 3', detail: 'Salary (income)', time: '8:05 AM', amount: -2000 }, // negative = income
+const perks = [
+	{
+		id: "p1",
+		title: "Instant Virtual Card",
+		desc: "Create a virtual card instantly for safe online payments.",
+	},
+	{
+		id: "p2",
+		title: "Auto Expense Categorization",
+		desc: "Card spends are auto-categorized to keep your budget organized.",
+	},
+	{
+		id: "p3",
+		title: "Cashback & Rewards",
+		desc: "Earn cashback on bills and select merchants.",
+	},
+	{
+		id: "p4",
+		title: "Round-ups to Savings",
+		desc: "Round-up transactions to grow your savings automatically.",
+	},
 ];
 
-const BUDGET = 20000;
-const SPENT = 5000; // sample
-
 const Page = () => {
-  const remaining = BUDGET - SPENT;
-  const progress = Math.min(1, SPENT / BUDGET);
+	const handleGetCard = () => {
+		// placeholder - hook this to real request flow
+		Alert.alert(
+			"Card Requested",
+			"Thank you — we will process your Benefits Card request and notify you."
+		);
+	};
 
-  return (
-    <>
-      <CardHeader />
-      <View style={styles.container}>
-        <View style={styles.card}>
-          <Text style={styles.title}>Monthly Budget</Text>
+	const handleLearnMore = () => {
+		Alert.alert(
+			"Learn More",
+			"This will open a detailed page about Benefits Card features (placeholder)."
+		);
+	};
 
-          <View style={styles.amountRow}>
-            <Text style={styles.amountLarge}>₹{BUDGET.toLocaleString()}</Text>
-            <View style={styles.smallAmounts}>
-              <Text style={styles.spent}>Spent: ₹{SPENT.toLocaleString()}</Text>
-              <Text style={styles.remaining}>Remaining: ₹{remaining.toLocaleString()}</Text>
-            </View>
-          </View>
+	return (
+		<>
+			<CardHeader />
+			<View style={styles.container}>
+				<View style={styles.promoCard}>
+					<Image
+						source={require("@/assets/svgs/savipayvisa.svg")}
+						style={styles.cardImage}
+					/>
+					<Text style={styles.headline}>Get your Benefits Card</Text>
+					<Text style={styles.subtitle}>
+						Spend smarter — get exclusive budgeting features, cashback and
+						enhanced control over your expenses.
+					</Text>
 
-          <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
-          </View>
+					<View style={styles.ctaRow}>
+						<TouchableOpacity
+							style={styles.primaryBtn}
+							onPress={handleGetCard}
+						>
+							<Ionicons name="card" size={18} color={Colors.white} />
+							<Text style={styles.primaryText}>Get Card</Text>
+						</TouchableOpacity>
 
-          <View style={styles.actionsRow}>
-            <TouchableOpacity style={styles.actionBtn}>
-              <Ionicons name="add" size={18} color={Colors.white} />
-              <Text style={styles.actionText}>Add Expense</Text>
-            </TouchableOpacity>
+						<TouchableOpacity
+							style={styles.ghostBtn}
+							onPress={handleLearnMore}
+						>
+							<Text style={styles.ghostText}>Learn More</Text>
+						</TouchableOpacity>
+					</View>
+				</View>
 
-            <TouchableOpacity style={[styles.actionBtn, styles.ghostBtn]}>
-              <Ionicons name="settings-outline" size={18} color={Colors.white} />
-              <Text style={styles.actionText}>Set Budget</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+				<View style={styles.perksSection}>
+					<Text style={styles.sectionTitle}>Exclusive Benefits</Text>
+					{perks.map((p) => (
+						<View key={p.id} style={styles.perkRow}>
+							<View style={styles.perkIcon}>
+								<Ionicons
+									name="checkmark"
+									size={18}
+									color={Colors.tintColor}
+								/>
+							</View>
+							<View style={{ flex: 1 }}>
+								<Text style={styles.perkTitle}>{p.title}</Text>
+								<Text style={styles.perkDesc}>{p.desc}</Text>
+							</View>
+						</View>
+					))}
+				</View>
 
-        <View style={styles.listSection}>
-          <Text style={styles.sectionTitle}>Recent Activity</Text>
-
-          {sampleExpenses.map((item) => {
-            const isIncome = item.amount < 0;
-            return (
-              <View key={item.id} style={styles.expenseRow}>
-                <Image
-                  source={require('@/assets/svgs/wallet.svg')}
-                  style={styles.expenseIcon}
-                />
-                <View style={styles.expenseText}>
-                  <Text style={styles.expenseTitle}>{item.title}</Text>
-                  <Text style={styles.expenseDetail}>{item.detail} • {item.time}</Text>
-                </View>
-                <Text style={[styles.expenseAmount, isIncome ? styles.income : styles.outcome]}>
-                  {isIncome ? '+' : '₹'}{Math.abs(item.amount).toLocaleString()}
-                </Text>
-              </View>
-            );
-          })}
-
-          <TouchableOpacity style={styles.viewMore}>
-            <Image
-              source={require('@/assets/svgs/search.svg')}
-              style={{ width: 20, height: 20, marginRight: 8 }}
-            />
-            <Text style={styles.viewMoreText}>View More</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </>
-  );
+				<View style={styles.footerNote}>
+					<Text style={styles.footerText}>
+						Physical card delivery and verification may require identity
+						confirmation. Virtual card available instantly.
+					</Text>
+				</View>
+			</View>
+		</>
+	);
 };
 
 export default Page;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.black,
-    paddingHorizontal: 20,
-    paddingTop: 20,
-  },
-  card: {
-    backgroundColor: '#0f1720',
-    borderRadius: 12,
-    padding: 20,
-  },
-  title: {
-    color: Colors.gray,
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  amountRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  amountLarge: {
-    color: Colors.white,
-    fontSize: 28,
-    fontWeight: '700',
-  },
-  smallAmounts: {
-    alignItems: 'flex-end',
-  },
-  spent: {
-    color: Colors.gray,
-    fontSize: 12,
-  },
-  remaining: {
-    color: Colors.tintColor,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  progressBar: {
-    height: 8,
-    backgroundColor: '#1f2933',
-    borderRadius: 8,
-    marginTop: 16,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: Colors.tintColor,
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 16,
-  },
-  actionBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.grey,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 8,
-  },
-  ghostBtn: {
-    backgroundColor: '#162028',
-  },
-  actionText: {
-    color: Colors.white,
-    marginLeft: 8,
-    fontWeight: '700',
-  },
-  listSection: {
-    marginTop: 24,
-  },
-  sectionTitle: {
-    color: Colors.white,
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 12,
-  },
-  expenseRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#0b1114',
-  },
-  expenseIcon: {
-    width: 40,
-    height: 40,
-  },
-  expenseText: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  expenseTitle: {
-    color: Colors.white,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  expenseDetail: {
-    color: Colors.gray,
-    fontSize: 13,
-    marginTop: 4,
-  },
-  expenseAmount: {
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  income: {
-    color: Colors.green,
-  },
-  outcome: {
-    color: Colors.white,
-  },
-  viewMore: {
-    marginTop: 18,
-    flexDirection: 'row',
-    backgroundColor: Colors.grey,
-    padding: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  viewMoreText: {
-    color: Colors.white,
-    fontWeight: '700',
-  },
+	container: {
+		flex: 1,
+		backgroundColor: Colors.black,
+		paddingHorizontal: 20,
+		paddingTop: 20,
+	},
+	promoCard: {
+		backgroundColor: "#0f1720",
+		borderRadius: 12,
+		padding: 18,
+		alignItems: "center",
+	},
+	cardImage: {
+		width: 220,
+		height: 120,
+		marginBottom: 8,
+	},
+	headline: {
+		color: Colors.white,
+		fontSize: 22,
+		fontWeight: "700",
+		marginTop: 8,
+		textAlign: "center",
+	},
+	subtitle: {
+		color: Colors.gray,
+		fontSize: 14,
+		textAlign: "center",
+		marginTop: 8,
+	},
+	ctaRow: {
+		flexDirection: "row",
+		marginTop: 16,
+		width: "100%",
+		justifyContent: "space-between",
+		gap: 12,
+	},
+	primaryBtn: {
+		flex: 1,
+		flexDirection: "row",
+		backgroundColor: Colors.tintColor,
+		paddingVertical: 12,
+		borderRadius: 8,
+		alignItems: "center",
+		justifyContent: "center",
+	},
+	primaryText: {
+		color: Colors.white,
+		marginLeft: 8,
+		fontWeight: "700",
+	},
+	ghostBtn: {
+		marginLeft: 12,
+		paddingVertical: 12,
+		paddingHorizontal: 14,
+		borderRadius: 8,
+		borderWidth: 1,
+		borderColor: Colors.gray,
+		justifyContent: "center",
+		alignItems: "center",
+	},
+	ghostText: {
+		color: Colors.white,
+		fontWeight: "700",
+	},
+
+	perksSection: {
+		marginTop: 20,
+	},
+	sectionTitle: {
+		color: Colors.white,
+		fontSize: 16,
+		fontWeight: "700",
+		marginBottom: 12,
+	},
+	perkRow: {
+		flexDirection: "row",
+		alignItems: "flex-start",
+		paddingVertical: 12,
+		borderBottomWidth: 1,
+		borderBottomColor: "#071012",
+	},
+	perkIcon: {
+		width: 36,
+		height: 36,
+		borderRadius: 10,
+		backgroundColor: "#081216",
+		alignItems: "center",
+		justifyContent: "center",
+		marginRight: 12,
+	},
+	perkTitle: {
+		color: Colors.white,
+		fontSize: 15,
+		fontWeight: "700",
+	},
+	perkDesc: {
+		color: Colors.gray,
+		fontSize: 13,
+		marginTop: 4,
+	},
+
+	footerNote: {
+		marginTop: 20,
+		padding: 12,
+		backgroundColor: "#071014",
+		borderRadius: 8,
+	},
+	footerText: {
+		color: Colors.gray,
+		fontSize: 13,
+		textAlign: "center",
+	},
 });

@@ -1,9 +1,8 @@
 import Header from '@/components/Header'
-import Hr from '@/components/ui/Hr'
 import { Colors } from '@/constants/Colors'
 import { Image } from 'expo-image'
 import React, { useState } from 'react'
-import { Button, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 const currencies = {
   INR: { label: 'Indian Rupee', symbol: '₹', flag: require('@/assets/svgs/indian.svg') },
@@ -11,34 +10,32 @@ const currencies = {
   CNY: { label: 'Chinese Yuan', symbol: '¥', flag: require('@/assets/svgs/china.svg') },
 }
 
+const sampleExpenses = [
+  { id: '1', title: 'Expense 1', detail: 'Groceries', time: '4:06 PM', amount: 1500 },
+  { id: '2', title: 'Expense 2', detail: 'Transport', time: '10:15 AM', amount: 500 },
+  { id: '3', title: 'Expense 3', detail: 'Salary (income)', time: '8:05 AM', amount: -2000 }, // negative = income
+];
+
+const BUDGET = 20000;
+const SPENT = 5000; // sample
+
 const HomeScreen = () => {
   const [currency, setCurrency] = useState<'INR'|'USD'|'CNY'>('INR')
   const symbol = currencies[currency].symbol
+  const remaining = BUDGET - SPENT
+  const progress = Math.min(1, SPENT / BUDGET)
 
   return (
     <>
       <Header />
-      <View style={[styles.container]}>
+      <View style={styles.container}>
         <ScrollView showsVerticalScrollIndicator={false}>
-          <View style={{
-            flexDirection: "row",
-            justifyContent: "flex-start",
-            alignItems: "flex-start",
-            paddingVertical: 20,
-            gap: 15,
-            paddingHorizontal: 10,
-          }}>
-            <Button
-              title="Spend"
-              color={Colors.grey}
-            />
-            <Button title="Save" color={Colors.grey} />
-            <Button title="Borrow" color={Colors.grey} />
-          </View>
-          <View style={{ paddingVertical: 10, paddingHorizontal: 20, alignItems: 'center', flexDirection: 'row', gap: 12 }}>
+
+          {/* currency selector */}
+          <View style={styles.currencyRow}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <Image source={currencies[currency].flag} style={{ width: 30, height: 30 }} />
-              <Text style={{ color: Colors.white, fontSize: 16, fontWeight: 'bold' }}>{currencies[currency].label}</Text>
+              <Text style={styles.currencyLabel}>{currencies[currency].label}</Text>
             </View>
 
             <View style={{ flexDirection: 'row', marginLeft: 'auto', gap: 8 }}>
@@ -49,246 +46,204 @@ const HomeScreen = () => {
               )) }
             </View>
           </View>
-          <View style={{ flexDirection: 'column', paddingHorizontal: 20, }}>
-            <View style={{ alignItems: 'flex-start', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', gap: 10 }}>
-              <Text style={{ color: Colors.white, fontSize: 36, fontWeight: 700 }}>
-                {symbol}11,475.<Text style={{ fontSize: 22, fontWeight: 400 }}>00</Text>
-              </Text>
 
-              <Image
-                source={require('@/assets/svgs/more.svg')}
-                style={{ width: 30, height: 30, marginTop: 10 }}
-              />
+          <View style={styles.card}>
+            <Text style={styles.title}>Monthly Budget</Text>
+
+            <View style={styles.amountRow}>
+              <Text style={styles.amountLarge}>{symbol}{BUDGET.toLocaleString()}</Text>
+              <View style={styles.smallAmounts}>
+                <Text style={styles.spent}>Spent: {symbol}{SPENT.toLocaleString()}</Text>
+                <Text style={styles.remaining}>Remaining: {symbol}{remaining.toLocaleString()}</Text>
+              </View>
             </View>
 
-            <Text
-              style={{
-                color: Colors.gray,
-                fontSize: 16,
-                marginTop: 10,
-              }}
-            >
-              Last Updated 2 minutes ago.
-            </Text>
-          </View>
+            <View style={styles.progressBar}>
+              <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
+            </View>
 
-          <View style={{ display: 'flex', paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 20 }}>
-            <TouchableOpacity style={styles.button}>
-              <Image
-                source={require('@/assets/svgs/send-outline.svg')}
-                style={{ width: 20, height: 20, marginRight: 10 }}
-              />
-              <Text style={styles.text}>Transfer</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.button}>
-              <Image
-                source={require('@/assets/svgs/add.svg')}
-                style={{ width: 20, height: 20, marginRight: 10 }}
-              />
-              <Text style={styles.text}>Add Money</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={{ marginTop: 40, alignItems: 'flex-start', paddingHorizontal: 20, }}>
-            <Text style={{ color: Colors.white, fontSize: 16, fontWeight: 'bold' }}>
-              Quick Access
-            </Text>
-
-            <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 20, gap: 10 }}>
-              <TouchableOpacity style={styles.buttons}>
-                <Image
-                  source={require('@/assets/svgs/send.svg')}
-                  style={{ width: 20, height: 20, marginRight: 10 }}
-                />
-                <Text style={styles.text}>Send</Text>
+            <View style={styles.actionsRow}>
+              <TouchableOpacity style={styles.actionBtn}>
+                <Text style={styles.actionText}>Add Expense</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.buttons}>
-                <Image
-                  source={require('@/assets/svgs/airtime.svg')}
-                  style={{ width: 20, height: 20, marginRight: 10, contentFit: 'contain' }}
-                />
-                <Text style={styles.text}>Airtime</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.buttons}>
-                <Image
-                  source={require('@/assets/svgs/bills.svg')}
-                  style={{ width: 20, height: 20, marginRight: 10, contentFit: 'contain' }}
-                />
-                <Text style={styles.text}>Bills</Text>
+              <TouchableOpacity style={[styles.actionBtn, styles.ghostBtn]}>
+                <Text style={styles.actionText}>Set Budget</Text>
               </TouchableOpacity>
             </View>
           </View>
 
-          <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 20, backgroundColor: Colors.grey, width: "100%" }}>
-            <Text style={{
-              color: Colors.gray,
-              marginLeft: 8,
-              fontWeight: 'bold',
-              fontSize: 16,
-              textAlign: 'center',
-            }}>
-              8/08/2025
-            </Text>
-          </View>
+          <View style={styles.listSection}>
+            <Text style={styles.sectionTitle}>Recent Activity</Text>
 
-          <View style={{
-            paddingHorizontal: 20,
-          }}>
-            <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 20, width: "100%" }}>
-              <Image
-                source={require('@/assets/svgs/acessBank.svg')}
-                style={{ width: 40, height: 40 }}
-              />
-              <View style={{}}>
-                <Text style={{
-                  color: Colors.white,
-                  marginLeft: 8,
-                  fontWeight: 'bold',
-                  fontSize: 16,
-                  textAlign: 'center',
-                }}>Expense 1</Text>
-                <Text style={{
-                  color: Colors.gray,
-                  marginLeft: 8,
-                  fontWeight: 'semibold',
-                  fontSize: 16,
-                }}>4:06 PM</Text>
-              </View>
+            {sampleExpenses.map((item) => {
+              const isIncome = item.amount < 0;
+              return (
+                <View key={item.id} style={styles.expenseRow}>
+                  <Image source={require('@/assets/svgs/wallet.svg')} style={styles.expenseIcon} />
+                  <View style={styles.expenseText}>
+                    <Text style={styles.expenseTitle}>{item.title}</Text>
+                    <Text style={styles.expenseDetail}>{item.detail} • {item.time}</Text>
+                  </View>
+                  <Text style={[styles.expenseAmount, isIncome ? styles.income : styles.outcome]}>
+                    {isIncome ? '+' : symbol}{Math.abs(item.amount).toLocaleString()}
+                  </Text>
+                </View>
+              );
+            })}
 
-              <Text style={{
-                color: Colors.white,
-                marginLeft: 58,
-                marginTop: -15,
-                fontWeight: 'bold',
-                fontSize: 16,
-                textAlign: 'center',
-              }}>{symbol}1,500</Text>
-            </View>
-            <Hr />
-
-            <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 20, width: "100%" }}>
-              <Image
-                source={require('@/assets/svgs/mtn.svg')}
-                style={{ width: 40, height: 40 }}
-              />
-              <View style={{}}>
-                <Text style={{
-                  color: Colors.white,
-                  marginLeft: 8,
-                  fontWeight: 'bold',
-                  fontSize: 16,
-                  textAlign: 'center',
-                }}>Expense 2</Text>
-                <Text style={{
-                  color: Colors.gray,
-                  marginLeft: 8,
-                  fontWeight: 'semibold',
-                  fontSize: 16,
-                }}>10:15 AM</Text>
-              </View>
-
-              <Text style={{
-                color: Colors.white,
-                marginLeft: 28,
-                marginTop: -15,
-                fontWeight: 'bold',
-                fontSize: 16,
-                textAlign: 'center',
-              }}>{symbol}500</Text>
-            </View>
-            <Hr />
-
-            <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 20, width: "100%" }}>
-              <Image
-                source={require('@/assets/svgs/gtco.svg')}
-                style={{ width: 40, height: 40 }}
-              />
-              <View style={{}}>
-                <Text style={{
-                  color: Colors.white,
-                  marginLeft: 8,
-                  fontWeight: 'bold',
-                  fontSize: 16,
-                  textAlign: 'center',
-                }}>Expense 3</Text>
-                <Text style={{
-                  color: Colors.gray,
-                  marginLeft: 8,
-                  fontWeight: 'semibold',
-                  fontSize: 16,
-                }}>8:05 AM</Text>
-              </View>
-
-              <Text style={{
-                color: Colors.green,
-                marginLeft: 38,
-                marginTop: -15,
-                fontWeight: 'bold',
-                fontSize: 16,
-                textAlign: 'center',
-              }}>+{symbol}2,000</Text>
-            </View>
-
-            <TouchableOpacity style={styles.more}>
-              <Image
-                source={require('@/assets/svgs/search.svg')}
-                style={{ width: 25, height: 25, contentFit: "contain" }}
-              />
-              <Text style={styles.text}>View More</Text>
+            <TouchableOpacity style={styles.viewMore}>
+              <Image source={require('@/assets/svgs/search.svg')} style={{ width: 20, height: 20, marginRight: 8 }} />
+              <Text style={styles.viewMoreText}>View More</Text>
             </TouchableOpacity>
           </View>
+
         </ScrollView>
       </View>
     </>
   )
 }
 
-export default HomeScreen;
+export default HomeScreen
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.black,
-    // 
   },
-  button: {
-    flexDirection: 'row',
-    backgroundColor: Colors.grey,
-    padding: 12,
-    borderRadius: 8,
+  currencyRow: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     alignItems: 'center',
-    justifyContent: 'center',
-    width: '48%',
-  },
-  buttons: {
     flexDirection: 'row',
-    backgroundColor: Colors.grey,
-    padding: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
+    gap: 12,
   },
-  text: {
-    color: '#fff',
-    marginLeft: 8,
-    fontWeight: 'bold',
+  currencyLabel: {
+    color: Colors.white,
     fontSize: 16,
-    textAlign: 'center',
+    fontWeight: 'bold',
   },
-  more: {
-    display: "flex",
+
+  card: {
+    backgroundColor: '#0f1720',
+    borderRadius: 12,
+    padding: 20,
+    margin: 16,
+  },
+  title: {
+    color: Colors.gray,
+    fontSize: 14,
+    marginBottom: 8,
+  },
+  amountRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  amountLarge: {
+    color: Colors.white,
+    fontSize: 28,
+    fontWeight: '700',
+  },
+  smallAmounts: {
+    alignItems: 'flex-end',
+  },
+  spent: {
+    color: Colors.gray,
+    fontSize: 12,
+  },
+  remaining: {
+    color: Colors.tintColor,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: '#1f2933',
+    borderRadius: 8,
+    marginTop: 16,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: Colors.tintColor,
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+  },
+  actionBtn: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: Colors.grey,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  ghostBtn: {
+    backgroundColor: '#162028',
+  },
+  actionText: {
+    color: Colors.white,
+    fontWeight: '700',
+  },
+
+  listSection: {
+    marginTop: 8,
+    paddingHorizontal: 16,
+  },
+  sectionTitle: {
+    color: Colors.white,
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  expenseRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#0b1114',
+  },
+  expenseIcon: {
+    width: 40,
+    height: 40,
+  },
+  expenseText: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  expenseTitle: {
+    color: Colors.white,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  expenseDetail: {
+    color: Colors.gray,
+    fontSize: 13,
+    marginTop: 4,
+  },
+  expenseAmount: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  income: {
+    color: Colors.green,
+  },
+  outcome: {
+    color: Colors.white,
+  },
+  viewMore: {
+    marginTop: 18,
     flexDirection: 'row',
     backgroundColor: Colors.grey,
     padding: 10,
     borderRadius: 8,
-    marginTop: 30,
     alignItems: 'center',
     justifyContent: 'center',
-    width: '54%',
-    marginLeft: "25%",
-    marginBottom: 10,
   },
-});
+  viewMoreText: {
+    color: Colors.white,
+    fontWeight: '700',
+  },
+})
