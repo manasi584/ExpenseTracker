@@ -16,6 +16,12 @@ const sampleExpenses = [
   { id: '3', title: 'Expense 3', detail: 'Salary (income)', time: '8:05 AM', amount: -2000 }, // negative = income
 ];
 
+// sample investments shown in overview (replace with real data later)
+const sampleInvestments = [
+  { id: 'inv1', name: 'Index Fund', value: 8000 },
+  { id: 'inv2', name: 'High Yield', value: 12000 },
+];
+
 const BUDGET = 20000;
 const SPENT = 5000; // sample
 
@@ -24,6 +30,9 @@ const HomeScreen = () => {
   const symbol = currencies[currency].symbol
   const remaining = BUDGET - SPENT
   const progress = Math.min(1, SPENT / BUDGET)
+  const cardsOwned = 1 // sample — replace with dynamic value
+  const investmentsTotal = sampleInvestments.reduce((s, i) => s + i.value, 0)
+  const netBalance = BUDGET - SPENT + investmentsTotal
 
   return (
     <>
@@ -44,6 +53,24 @@ const HomeScreen = () => {
                   <Image source={currencies[k].flag} style={{ width: 24, height: 24, opacity: currency === k ? 1 : 0.45 }} />
                 </TouchableOpacity>
               )) }
+            </View>
+          </View>
+
+          {/* Overview: cards / investments / balance */}
+          <View style={styles.overview}>
+            <View style={styles.overviewItem}>
+              <Text style={styles.overviewValue}>{cardsOwned}</Text>
+              <Text style={styles.overviewLabel}>Cards Owned</Text>
+            </View>
+
+            <View style={styles.overviewItem}>
+              <Text style={styles.overviewValue}>{symbol}{investmentsTotal.toLocaleString()}</Text>
+              <Text style={styles.overviewLabel}>Investments</Text>
+            </View>
+
+            <View style={styles.overviewItem}>
+              <Text style={styles.overviewValue}>{symbol}{netBalance.toLocaleString()}</Text>
+              <Text style={styles.overviewLabel}>Net Balance</Text>
             </View>
           </View>
 
@@ -245,5 +272,32 @@ const styles = StyleSheet.create({
   viewMoreText: {
     color: Colors.white,
     fontWeight: '700',
+  },
+
+  overview: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  overviewItem: {
+    flex: 1,
+    backgroundColor: '#0f1720',
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginHorizontal: 6,
+  },
+  overviewValue: {
+    color: Colors.white,
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  overviewLabel: {
+    color: Colors.gray,
+    fontSize: 12,
+    marginTop: 6,
   },
 })

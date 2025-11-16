@@ -1,10 +1,20 @@
 import { Colors } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, Image, Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Header = () => {
+  const [showTransactions, setShowTransactions] = React.useState(false);
+
+  const lastTransactions = [
+    { id: 't1', title: 'Grocery Store', date: '08/12/2025', time: '4:06 PM', amount: -1500 },
+    { id: 't2', title: 'Taxi', date: '08/12/2025', time: '10:15 AM', amount: -500 },
+    { id: 't3', title: 'Salary', date: '08/11/2025', time: '8:05 AM', amount: 2000 },
+    { id: 't4', title: 'Coffee', date: '08/10/2025', time: '9:30 AM', amount: -200 },
+    { id: 't5', title: 'Utility Bill', date: '08/09/2025', time: '6:20 PM', amount: -1200 },
+  ];
+
   return (
     <SafeAreaView style={styles.container}>
       <View
@@ -23,7 +33,7 @@ const Header = () => {
           </View>
         </View>
         <TouchableOpacity
-          onPress={() => { }}
+          onPress={() => setShowTransactions(true)}
           style={styles.btnWrapper}
         >
           <Text style={styles.btnText}>
@@ -31,6 +41,38 @@ const Header = () => {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Transactions modal */}
+      <Modal visible={showTransactions} animationType="fade" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Last 5 Transactions</Text>
+              <TouchableOpacity onPress={() => setShowTransactions(false)} style={{ padding: 6 }}>
+                <Ionicons name="close" size={22} color={Colors.white} />
+              </TouchableOpacity>
+            </View>
+
+            <FlatList
+              data={lastTransactions}
+              keyExtractor={(i) => i.id}
+              showsVerticalScrollIndicator={false}
+              renderItem={({ item }) => (
+                <View style={styles.txRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.txTitle}>{item.title}</Text>
+                    <Text style={styles.txMeta}>{item.date} • {item.time}</Text>
+                  </View>
+                  <Text style={[styles.txAmount, item.amount > 0 ? styles.income : styles.outcome]}>
+                    {item.amount > 0 ? '+' : '₹'}{Math.abs(item.amount).toLocaleString()}
+                  </Text>
+                </View>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
+
     </SafeAreaView>
   );
 };
@@ -113,6 +155,9 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     borderWidth: 2,
     borderColor: Colors.tintColor,
+    overflow: "hidden",
+    justifyContent: "center",
+    alignItems: "center",
   },
   userTxtWrapper: {
     marginLeft: 10,
@@ -132,5 +177,57 @@ const styles = StyleSheet.create({
   btnText: {
     color: Colors.white,
     fontSize: 12,
+  },
+  /* modal styles */
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalCard: {
+    width: '88%',
+    maxHeight: '70%',
+    backgroundColor: '#071014',
+    borderRadius: 12,
+    padding: 14,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  modalTitle: {
+    color: Colors.white,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  txRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#0b1114',
+  },
+  txTitle: {
+    color: Colors.white,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  txMeta: {
+    color: Colors.gray,
+    fontSize: 12,
+    marginTop: 4,
+  },
+  txAmount: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  income: {
+    color: Colors.green,
+  },
+  outcome: {
+    color: Colors.white,
   },
 });
