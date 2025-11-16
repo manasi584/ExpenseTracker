@@ -4,7 +4,7 @@ import { Colors } from '@/constants/Colors'
 import { useAuth } from '@/hooks/useAuth'
 import { Image } from 'expo-image'
 import React, { useState } from 'react'
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 
 const currencies = {
   INR: { label: 'Indian Rupee', symbol: '₹', flag: require('@/assets/svgs/indian.svg') },
@@ -12,7 +12,8 @@ const currencies = {
   CNY: { label: 'Chinese Yuan', symbol: '¥', flag: require('@/assets/svgs/china.svg') },
 }
 
-const sampleExpenses = [
+// initial list (kept as initial constant then moved into state in component)
+const initialExpenses = [
   { id: '1', title: 'Expense 1', detail: 'Groceries', time: '4:06 PM', amount: 1500 },
   { id: '2', title: 'Expense 2', detail: 'Transport', time: '10:15 AM', amount: 500 },
   { id: '3', title: 'Expense 3', detail: 'Salary (income)', time: '8:05 AM', amount: -2000 }, // negative = income
@@ -30,6 +31,13 @@ const SPENT = 5000; // sample
 const HomeScreen = () => {
   const [currency, setCurrency] = useState<'INR'|'USD'|'CNY'>('INR')
   const { user, loading } = useAuth();
+  // expenses state (was static)
+  const [expenses, setExpenses] = useState(initialExpenses)
+  // modal / form state for adding an expense
+  const [adding, setAdding] = useState(false)
+  const [title, setTitle] = useState('')
+  const [detail, setDetail] = useState('')
+  const [amount, setAmount] = useState('')
 
   if (loading) {
     return (
@@ -49,6 +57,29 @@ const HomeScreen = () => {
   const cardsOwned = 1 // sample — replace with dynamic value
   const investmentsTotal = sampleInvestments.reduce((s, i) => s + i.value, 0)
   const netBalance = BUDGET - SPENT + investmentsTotal
+
+  // add expense handler
+  const handleAddExpense = () => {
+    const parsed = Number(amount)
+    if (!title.trim() || !detail.trim() || !amount.trim() || Number.isNaN(parsed)) {
+      Alert.alert('Invalid input', 'Please provide title, detail and a numeric amount.')
+      return
+    }
+    const newExpense = {
+      id: Date.now().toString(),
+      title: title.trim(),
+      detail: detail.trim(),
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      amount: parsed,
+    }
+    // prepend to list
+    setExpenses((s) => [newExpense, ...s])
+    // reset form and close
+    setTitle('')
+    setDetail('')
+    setAmount('')
+    setAdding(false)
+  }
 
   return (
     <>
@@ -109,7 +140,7 @@ const HomeScreen = () => {
             </View>
 
             <View style={styles.actionsRow}>
-              <TouchableOpacity style={styles.actionBtn}>
+              <TouchableOpacity style={styles.actionBtn} onPress={() => setAdding(true)}>
                 <Text style={styles.actionText}>Add Expense</Text>
               </TouchableOpacity>
 
@@ -122,7 +153,7 @@ const HomeScreen = () => {
           <View style={styles.listSection}>
             <Text style={styles.sectionTitle}>Recent Activity</Text>
 
-            {sampleExpenses.map((item) => {
+            {expenses.map((item) => {
               const isIncome = item.amount < 0;
               return (
                 <View key={item.id} style={styles.expenseRow}>
@@ -144,6 +175,27 @@ const HomeScreen = () => {
             </TouchableOpacity>
           </View>
 
+          {/* Add Expense Modal */}
+          <Modal visible={adding} transparent animationType="fade" onRequestClose={() => setAdding(false)}>
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.modalBackdrop}>
+              <View style={styles.modalContainer}>
+                <Text style={[styles.sectionTitle, { marginBottom: 12 }]}>Add Expense</Text>
+                <TextInput placeholder="Title" placeholderTextColor="#9AA0A4" style={styles.input} value={title} onChangeText={setTitle} />
+                <TextInput placeholder="Category" placeholderTextColor="#9AA0A4" style={styles.input} value={detail} onChangeText={setDetail} />
+                <TextInput placeholder="Amount" placeholderTextColor="#9AA0A4" style={styles.input} value={amount} onChangeText={setAmount} keyboardType="numeric" />
+
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity style={[styles.modalBtn, { backgroundColor: '#243038' }]} onPress={() => setAdding(false)}>
+                    <Text style={styles.modalBtnText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.modalBtn, { backgroundColor: Colors.tintColor }]} onPress={handleAddExpense}>
+                    <Text style={styles.modalBtnText}>Save</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </KeyboardAvoidingView>
+          </Modal>
+
         </ScrollView>
       </View>
     </>
@@ -156,6 +208,41 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.black,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  modalContainer: {
+    backgroundColor: '#0f1720',
+    borderRadius: 12,
+    padding: 16,
+  },
+  input: {
+    backgroundColor: '#081118',
+    color: Colors.white,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  modalBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 8,
+    marginHorizontal: 6,
+  },
+  modalBtnText: {
+    color: Colors.white,
+    fontWeight: '700',
   },
   currencyRow: {
     paddingVertical: 10,
