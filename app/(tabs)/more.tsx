@@ -15,303 +15,95 @@ const Page = () => {
         <UserHeader />
         <Hr />
 
-        <View style={{
-          paddingHorizontal: 20,
-        }}>
-          <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 20, marginLeft: -12, justifyContent: "space-between" }}>
-            <Image
-              source={require('@/assets/images/icon.png')}
-              style={{ width: 80, height: 80, contentFit: "contain", marginLeft: -10 }}
-            />
-            <View style={{ marginLeft: -68 }}>
-              <Text style={{
-                color: Colors.white,
-                marginLeft: 8,
-                fontWeight: 'bold',
-                fontSize: 20,
-                textAlign: 'left',
-              }}>
-                Get SaviPay Business
-              </Text>
-            </View>
-
-            <TouchableOpacity>
-              <Ionicons name="chevron-forward" size={24} color={Colors.white} style={{
-                color: Colors.white,
-                fontWeight: 'bold',
-                fontSize: 26,
-                textAlign: 'right',
-              }} />
-            </TouchableOpacity>
-          </View>
-
-          <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: "space-between" }}>
-            <Image
-              source={require('@/assets/svgs/str.svg')}
-              style={{ width: 40, height: 45, contentFit: "contain" }}
-            />
-            <View style={{ marginLeft: -68 }}>
-              <Text style={{
-                color: Colors.white,
-                marginLeft: 28,
-                fontWeight: 'bold',
-                fontSize: 20,
-                textAlign: 'left',
-              }}>
-                Statements & Reports
-              </Text>
-
-              <Text style={{
-                color: Colors.gray,
-                marginLeft: 28,
-                fontWeight: 'semibold',
-                fontSize: 14,
-              }}>
-                Download monthly statements
-              </Text>
-            </View>
-
-            <TouchableOpacity>
-              <Ionicons name="chevron-forward" size={24} color={Colors.white} style={{
-                color: Colors.white,
-                marginTop: -15,
-                fontWeight: 'bold',
-                fontSize: 26,
-                textAlign: 'center',
-              }} />
-            </TouchableOpacity>
-          </View>
-
-          <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 20, marginLeft: -12, justifyContent: "space-between" }}>
-            <Image
-              source={require('@/assets/svgs/scards.svg')}
-              style={{ width: 45, height: 45, contentFit: "contain", marginLeft: 10 }}
-            />
-            <View style={{ marginLeft: -56 }}>
-              <Text style={{
-                color: Colors.white,
-                marginLeft: -18,
-                fontWeight: 'bold',
-                fontSize: 20,
-                textAlign: 'left',
-              }}>
-                Saved Cards
-              </Text>
-
-              <Text style={{
-                color: Colors.gray,
-                marginLeft: -18,
-                fontWeight: 'semibold',
-                fontSize: 14,
-              }}>
-                Manage connected cards
-              </Text>
-            </View>
-
-            <TouchableOpacity>
-              <Ionicons name="chevron-forward" size={24} color={Colors.white} style={{
-                color: Colors.white,
-                marginTop: -15,
-                fontWeight: 'bold',
-                fontSize: 26,
-                textAlign: 'center',
-              }} />
-            </TouchableOpacity>
-          </View>
-
-          <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 20, justifyContent: "space-between" }}>
-            <Image
-              source={require('@/assets/svgs/help.svg')}
-              style={{ width: 40, height: 40 }}
-            />
-            <View style={{ marginLeft: -50 }}>
-              <Text style={{
-                color: Colors.white,
-                marginLeft: 8,
-                fontWeight: 'bold',
-                fontSize: 20,
-                textAlign: 'left',
-              }}>
-                Get Help
-              </Text>
-
-              <Text style={{
-                color: Colors.gray,
-                marginLeft: 8,
-                fontWeight: 'semibold',
-                fontSize: 14,
-              }}>
-                Get support or send feedback
-              </Text>
-            </View>
-
-            <TouchableOpacity>
-              <Ionicons name="chevron-forward" size={24} color={Colors.white} style={{
-                color: Colors.white,
-                marginTop: -15,
-                fontWeight: 'bold',
-                fontSize: 26,
-                textAlign: 'center',
-              }} />
-            </TouchableOpacity>
-          </View>
-
-          <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 20, justifyContent: "space-between" }}>
-            <Image
-              source={require('@/assets/svgs/security.svg')}
-              style={{ width: 35, height: 45 }}
-            />
-            <View style={{ marginLeft: -20 }}>
-              <Text style={{
-                color: Colors.white,
-                marginLeft: -8,
-                fontWeight: 'bold',
-                fontSize: 20,
-                textAlign: 'left',
-              }}>
-                Security
-              </Text>
-
-              <View style={{ display: 'flex', flexDirection: 'row', }}>
-                <Text style={{
-                  color: Colors.gray,
-                  marginLeft: -8,
-                  fontWeight: 'semibold',
-                  fontSize: 14,
-                }}>
-                  Protect yourself from intruders
-                </Text>
+        <View style={styles.content}>
+          {/* reusable menu row */}
+          <TouchableOpacity style={styles.row}>
+            <View style={styles.itemLeft}>
+              <Image source={require('@/assets/images/icon.png')} style={styles.itemIcon} />
+              <View style={styles.itemBody}>
+                <Text style={styles.itemTitle}>Upgrade to Benefits Card Plus</Text>
+                <Text style={styles.itemSubtitle}>Get premium perks for budgeting and cashback.</Text>
               </View>
             </View>
+            <Ionicons name="chevron-forward" size={22} color={Colors.black} style={styles.chevron} />
+          </TouchableOpacity>
 
-            <TouchableOpacity>
-              <Ionicons name="chevron-forward" size={24} color={Colors.white} style={{
-                color: Colors.white,
-                marginTop: -15,
-                fontWeight: 'bold',
-                fontSize: 26,
-                textAlign: 'right',
-              }} />
-            </TouchableOpacity>
-          </View>
-
-          <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 20, justifyContent: "space-between" }}>
-            <Image
-              source={require('@/assets/svgs/refs.svg')}
-              style={{ width: 35, height: 35 }}
-            />
-            <View style={{ marginLeft: -20 }}>
-              <Text style={{
-                color: Colors.white,
-                marginLeft: 8,
-                fontWeight: 'bold',
-                fontSize: 20,
-                textAlign: 'left',
-              }}>
-                Referrals
-              </Text>
-
-              <View style={{ display: 'flex', flexDirection: 'row', }}>
-                <Text style={{
-                  color: Colors.gray,
-                  marginLeft: 8,
-                  fontWeight: 'semibold',
-                  fontSize: 14,
-                  maxWidth: 200,
-                }}>
-                  Earn money when you invite your friends to SaviPay
-                </Text>
+          <TouchableOpacity style={styles.row}>
+            <View style={styles.itemLeft}>
+              <Image source={require('@/assets/svgs/str.svg')} style={styles.itemIcon} />
+              <View style={styles.itemBody}>
+                <Text style={styles.itemTitle}>Reports & Insights</Text>
+                <Text style={styles.itemSubtitle}>View spending reports and export summaries</Text>
               </View>
             </View>
+            <Ionicons name="chevron-forward" size={22} color={Colors.black} style={styles.chevron} />
+          </TouchableOpacity>
 
-            <TouchableOpacity>
-              <Ionicons name="chevron-forward" size={24} color={Colors.white} style={{
-                color: Colors.white,
-                marginTop: -15,
-                fontWeight: 'bold',
-                fontSize: 26,
-                textAlign: 'right',
-              }} />
-            </TouchableOpacity>
-          </View>
-
-          <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 20, justifyContent: "space-between" }}>
-            <Image
-              source={require('@/assets/svgs/limit.svg')}
-              style={{ width: 35, height: 45 }}
-            />
-            <View style={{ marginLeft: -20 }}>
-              <Text style={{
-                color: Colors.white,
-                marginLeft: 38,
-                fontWeight: 'bold',
-                fontSize: 20,
-                textAlign: 'left',
-              }}>
-                Account Limits
-              </Text>
-
-              <View style={{ display: 'flex', flexDirection: 'row', }}>
-                <Text style={{
-                  color: Colors.gray,
-                  marginLeft: 38,
-                  fontWeight: 'semibold',
-                  fontSize: 14,
-                }}>
-                  How much you can spend and receive
-                </Text>
+          <TouchableOpacity style={styles.row}>
+            <View style={styles.itemLeft}>
+              <Image source={require('@/assets/svgs/scards.svg')} style={styles.itemIcon} />
+              <View style={styles.itemBody}>
+                <Text style={styles.itemTitle}>Categories</Text>
+                <Text style={styles.itemSubtitle}>Manage spending categories and rules</Text>
               </View>
             </View>
+            <Ionicons name="chevron-forward" size={22} color={Colors.black} style={styles.chevron} />
+          </TouchableOpacity>
 
-            <TouchableOpacity>
-              <Ionicons name="chevron-forward" size={24} color={Colors.white} style={{
-                color: Colors.white,
-                marginTop: -15,
-                fontWeight: 'bold',
-                fontSize: 26,
-                textAlign: 'right',
-              }} />
-            </TouchableOpacity>
-          </View>
-
-          <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 20, justifyContent: "space-between" }}>
-            <Image
-              source={require('@/assets/svgs/legal.svg')}
-              style={{ width: 40, height: 40 }}
-            />
-            <View style={{ marginLeft: -20 }}>
-              <Text style={{
-                color: Colors.white,
-                marginLeft: -28,
-                fontWeight: 'bold',
-                fontSize: 20,
-                textAlign: 'left',
-              }}>
-                Legal
-              </Text>
-
-              <View style={{ display: 'flex', flexDirection: 'row', }}>
-                <Text style={{
-                  color: Colors.gray,
-                  marginLeft: -28,
-                  fontWeight: 'semibold',
-                  fontSize: 14,
-                }}>
-                  About our contracts with you
-                </Text>
+          <TouchableOpacity style={styles.row}>
+            <View style={styles.itemLeft}>
+              <Image source={require('@/assets/svgs/help.svg')} style={styles.itemIcon} />
+              <View style={styles.itemBody}>
+                <Text style={styles.itemTitle}>Export Data</Text>
+                <Text style={styles.itemSubtitle}>Download CSV of transactions and reports</Text>
               </View>
             </View>
+            <Ionicons name="download" size={22} color={Colors.black} style={styles.chevron} />
+          </TouchableOpacity>
 
-            <TouchableOpacity>
-              <Ionicons name="chevron-forward" size={24} color={Colors.white} style={{
-                color: Colors.white,
-                marginTop: -15,
-                fontWeight: 'bold',
-                fontSize: 26,
-                textAlign: 'right',
-              }} />
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity style={styles.row}>
+            <View style={styles.itemLeft}>
+              <Image source={require('@/assets/svgs/security.svg')} style={styles.itemIcon} />
+              <View style={styles.itemBody}>
+                <Text style={styles.itemTitle}>Security</Text>
+                <Text style={styles.itemSubtitle}>Two-factor, passcode and account protection</Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={22} color={Colors.black} style={styles.chevron} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.row}>
+            <View style={styles.itemLeft}>
+              <Image source={require('@/assets/svgs/refs.svg')} style={styles.itemIcon} />
+              <View style={styles.itemBody}>
+                <Text style={styles.itemTitle}>Referrals & Rewards</Text>
+                <Text style={styles.itemSubtitle}>Earn rewards for inviting friends and using the Benefits Card</Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={22} color={Colors.black} style={styles.chevron} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.row}>
+            <View style={styles.itemLeft}>
+              <Image source={require('@/assets/svgs/limit.svg')} style={styles.itemIcon} />
+              <View style={styles.itemBody}>
+                <Text style={styles.itemTitle}>Account Limits</Text>
+                <Text style={styles.itemSubtitle}>How much you can spend and receive</Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={22} color={Colors.black} style={styles.chevron} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.row}>
+            <View style={styles.itemLeft}>
+              <Image source={require('@/assets/svgs/legal.svg')} style={styles.itemIcon} />
+              <View style={styles.itemBody}>
+                <Text style={styles.itemTitle}>About & Legal</Text>
+                <Text style={styles.itemSubtitle}>Terms, privacy and our agreements with you</Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={22} color={Colors.black} style={styles.chevron} />
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </>
@@ -323,11 +115,48 @@ export default Page
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: Colors.black,
+    backgroundColor: Colors.white, // light background so text can be dark
   },
-  text: {
-    color: Colors.white,
+  content: {
+    paddingHorizontal: 20,
+    paddingBottom: 32,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#071012',
+  },
+  itemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  itemIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 10,
+    backgroundColor: '#F2F4F6',
+    padding: 8,
+    marginRight: 12,
+    resizeMode: 'contain',
+  },
+  itemBody: {
+    flex: 1,
+  },
+  itemTitle: {
+    color: Colors.black, // dark text
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  itemSubtitle: {
+    color: '#4A4A4A', // darker subtitle
+    fontSize: 13,
+    marginTop: 4,
+  },
+  chevron: {
+    marginLeft: 12,
   },
 })

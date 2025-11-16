@@ -59,16 +59,19 @@ const HomeScreen = () => {
           {/* Overview: cards / investments / balance */}
           <View style={styles.overview}>
             <View style={styles.overviewItem}>
+              <Image source={require('@/assets/svgs/scards.svg')} style={styles.overviewIcon} />
               <Text style={styles.overviewValue}>{cardsOwned}</Text>
-              <Text style={styles.overviewLabel}>Cards Owned</Text>
+              <Text style={styles.overviewLabel}>Cards</Text>
             </View>
 
             <View style={styles.overviewItem}>
+              <Image source={require('@/assets/svgs/savipayvisa.svg')} style={styles.overviewIcon} />
               <Text style={styles.overviewValue}>{symbol}{investmentsTotal.toLocaleString()}</Text>
               <Text style={styles.overviewLabel}>Investments</Text>
             </View>
 
             <View style={styles.overviewItem}>
+              <Image source={require('@/assets/svgs/wallet.svg')} style={styles.overviewIcon} />
               <Text style={styles.overviewValue}>{symbol}{netBalance.toLocaleString()}</Text>
               <Text style={styles.overviewLabel}>Net Balance</Text>
             </View>
@@ -154,8 +157,13 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#0f1720',
     borderRadius: 12,
-    padding: 20,
+    padding: 22,
     margin: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 4,
   },
   title: {
     color: Colors.gray,
@@ -289,6 +297,15 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     marginHorizontal: 6,
+    flexDirection: 'column',
+    justifyContent: 'center',
+  },
+  overviewIcon: {
+    width: 28,
+    height: 28,
+    marginBottom: 6,
+    tintColor: Colors.white,
+    resizeMode: 'contain',
   },
   overviewValue: {
     color: Colors.white,
