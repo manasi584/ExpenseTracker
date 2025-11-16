@@ -32,8 +32,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       // const storedUser: User = null; 
       const storedUser: User = {
       id: '1',
-      name: 'Chinonso Chikelue',
-      email: 'nonso@savipay.com',
+      name: 'John Doe',
+      email: 'JohnDoe123@gmail.com',
     };
       setUser(storedUser);
       setLoading(false);

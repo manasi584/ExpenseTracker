@@ -1,8 +1,8 @@
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import React from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
+import React from "react";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const Header = () => {
   return (
@@ -12,11 +12,11 @@ const Header = () => {
       >
         <View style={styles.userInfoWrapper}>
           <Image
-            source={{ uri: "https://i.pravatar.cc/250?u=12" }}
+            source={require('@/assets/images/images.jpeg')}
             style={styles.userImg}
           />
           <View style={styles.userTxtWrapper}>
-            <Text style={[styles.userText, { fontSize: 12 }]}>Hi, fluantiX</Text>
+            <Text style={[styles.userText, { fontSize: 12 }]}>Hi, username1</Text>
             <Text style={[styles.userText, { fontSize: 16 }]}>
               Your <Text style={styles.boldText}>Budget</Text>
             </Text>
@@ -54,7 +54,7 @@ export const UserHeader = () => {
           alignItems: "center",
         }}>
           <Image
-            source={{ uri: "https://i.pravatar.cc/250?u=12" }}
+            source={require('@/assets/images/images.jpeg')}
             style={{
               height: 70,
               width: 70,
@@ -64,7 +64,7 @@ export const UserHeader = () => {
             }}
           />
           <View style={styles.userTxtWrapper}>
-            <Text style={[styles.userText, { fontSize: 18, fontWeight: "bold" }]}>Chinonso Chikelue (fluantiX)</Text>
+            <Text style={[styles.userText, { fontSize: 18, fontWeight: "bold" }]}>John Doe (username1)</Text>
             <Text style={[styles.userText, { fontSize: 15, color: Colors.gray }]}>
               Account Details
             </Text>

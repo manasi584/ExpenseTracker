@@ -1,18 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-  SafeAreaView,
-  Alert,
-  Animated,
-} from 'react-native';
+import { AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as LocalAuthentication from 'expo-local-authentication';
-import { AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Redirect } from 'expo-router';
+import React, { useRef, useState } from 'react';
+import {
+    Alert,
+    Animated,
+    Image,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 
 const App = () => {
   const [passcode, setPasscode] = useState('');
@@ -88,7 +88,7 @@ const App = () => {
             style={styles.avatar}
           />
           <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.name}>Chinonso Chikelue</Text>
+          <Text style={styles.name}>John Doe</Text>
 
           <View style={styles.passcodeRow}>
             <AntDesign name="lock" size={24} color="limegreen" />

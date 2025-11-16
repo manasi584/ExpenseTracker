@@ -12,14 +12,14 @@ const AuthHeader = () => {
       >
         <View style={styles.userInfoWrapper}>
           <Image
-            source={{ uri: "https://i.pravatar.cc/250?u=12" }}
+            source={require("../assets/svgs/user-icon.svg")}
             style={styles.userImg}
           />
         </View>
 
         <View style={{ justifyContent: "center", alignItems: "center", }}>
           <Text style={styles.boldText}>Welcome Back</Text>
-          <Text style={[styles.userText, { fontSize: 18, fontWeight: "semibold" }]}>Chinonso Chikelue (fluantiX)</Text>
+          <Text style={[styles.userText, { fontSize: 18, fontWeight: "semibold" }]}>John Doe (username1)</Text>
         </View>
       </View>
     </SafeAreaView>
