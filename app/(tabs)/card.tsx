@@ -50,7 +50,7 @@ const Page = () => {
 			<View style={styles.container}>
 				<View style={styles.promoCard}>
 					<Image
-						source={require("@/assets/svgs/savipayvisa.svg")}
+						source={require("@/assets/svgs/visa.svg")}
 						style={styles.cardImage}
 					/>
 					<Text style={styles.headline}>Get your Benefits Card</Text>

@@ -22,7 +22,7 @@ const Header = () => {
       >
         <View style={styles.userInfoWrapper}>
           <Image
-            source={require('@/assets/images/images.jpeg')}
+            source={require('@/assets/images/user.png')}
             style={styles.userImg}
           />
           <View style={styles.userTxtWrapper}>
@@ -96,7 +96,7 @@ export const UserHeader = () => {
           alignItems: "center",
         }}>
           <Image
-            source={require('@/assets/images/images.jpeg')}
+            source={require('@/assets/images/user.png')}
             style={{
               height: 70,
               width: 70,

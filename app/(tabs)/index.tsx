@@ -81,13 +81,13 @@ const HomeScreen = () => {
             </View>
 
             <View style={styles.overviewItem}>
-              <Image source={require('@/assets/svgs/savipayvisa.svg')} style={styles.overviewIcon} />
+              <Image source={require('@/assets/svgs/chart.svg')} style={styles.overviewIcon} />
               <Text style={styles.overviewValue}>{symbol}{investmentsTotal.toLocaleString()}</Text>
               <Text style={styles.overviewLabel}>Investments</Text>
             </View>
 
             <View style={styles.overviewItem}>
-              <Image source={require('@/assets/svgs/wallet.svg')} style={styles.overviewIcon} />
+              <Image source={require('@/assets/svgs/str.svg')} style={styles.overviewIcon} />
               <Text style={styles.overviewValue}>{symbol}{netBalance.toLocaleString()}</Text>
               <Text style={styles.overviewLabel}>Net Balance</Text>
             </View>

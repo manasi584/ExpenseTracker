@@ -84,7 +84,7 @@ const App = () => {
       ) : (
         <>
           <Image
-            source={require('@/assets/images/images.jpeg')}
+            source={require('@/assets/images/user.png')}
             style={styles.avatar}
           />
           <Text style={styles.title}>Welcome Back</Text>
