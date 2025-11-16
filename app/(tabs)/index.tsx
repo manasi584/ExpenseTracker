@@ -36,12 +36,12 @@ const HomeScreen = () => {
           </View>
           <View style={{ paddingVertical: 10, paddingHorizontal: 20, alignItems: 'flex-start', display: 'flex', flexDirection: 'row', gap: 10 }}>
             <Image
-              source={require('@/assets/svgs/nigeria.svg')}
+              source={require('@/assets/svgs/indian.svg')}
               style={{ width: 30, height: 30 }}
             />
             <View style={{ alignItems: 'flex-start', display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', gap: 45 }}>
               <Text style={{ color: Colors.white, fontSize: 16, fontWeight: 'bold', marginTop: 5 }}>
-                Nigerian Naira
+                Indian Rupee
               </Text>
             </View>
           </View>
@@ -51,7 +51,7 @@ const HomeScreen = () => {
               <Text
                 style={{ color: Colors.white, fontSize: 36, fontWeight: 700 }}
               >
-                ₦11,475.<Text style={{ fontSize: 22, fontWeight: 400 }}>00</Text>
+                ₹11,475.<Text style={{ fontSize: 22, fontWeight: 400 }}>00</Text>
               </Text>
 
               <Image
@@ -148,7 +148,7 @@ const HomeScreen = () => {
                   fontWeight: 'bold',
                   fontSize: 16,
                   textAlign: 'center',
-                }}>Mary John Ojuelegba</Text>
+                }}>Expense 1</Text>
                 <Text style={{
                   color: Colors.gray,
                   marginLeft: 8,
@@ -164,7 +164,7 @@ const HomeScreen = () => {
                 fontWeight: 'bold',
                 fontSize: 16,
                 textAlign: 'center',
-              }}>₦1,500</Text>
+              }}>₹1,500</Text>
             </View>
             <Hr />
 
@@ -180,7 +180,7 @@ const HomeScreen = () => {
                   fontWeight: 'bold',
                   fontSize: 16,
                   textAlign: 'center',
-                }}>MTN NG Data 091******9</Text>
+                }}>Expense 2</Text>
                 <Text style={{
                   color: Colors.gray,
                   marginLeft: 8,
@@ -196,7 +196,7 @@ const HomeScreen = () => {
                 fontWeight: 'bold',
                 fontSize: 16,
                 textAlign: 'center',
-              }}>₦500</Text>
+              }}>₹500</Text>
             </View>
             <Hr />
 
@@ -212,7 +212,7 @@ const HomeScreen = () => {
                   fontWeight: 'bold',
                   fontSize: 16,
                   textAlign: 'center',
-                }}>Chukwuma Daniel Ujala</Text>
+                }}>Expense 3</Text>
                 <Text style={{
                   color: Colors.gray,
                   marginLeft: 8,
@@ -228,7 +228,7 @@ const HomeScreen = () => {
                 fontWeight: 'bold',
                 fontSize: 16,
                 textAlign: 'center',
-              }}>+₦2,000</Text>
+              }}>+₹2,000</Text>
             </View>
 
             <TouchableOpacity style={styles.more}>
