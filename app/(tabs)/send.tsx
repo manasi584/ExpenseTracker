@@ -5,6 +5,8 @@ import { Ionicons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import React, { useState } from 'react'
 import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { api } from '@/constants/Backend'
+import { useRouter } from 'expo-router'
 
 const contacts = [
   { id: 'c1', name: 'Contact 1', avatar: require('@/assets/svgs/r.svg') },
@@ -14,10 +16,14 @@ const contacts = [
   { id: 'c5', name: 'Contact 5', avatar: require('@/assets/svgs/o.svg') },
 ]
 
+const FIXED_CATEGORIES = ['Groceries', 'Transportation', 'Utilities', 'Dining Out', 'Entertainment', 'Other']
+
 const Send = () => {
+  const router = useRouter()
   const [selected, setSelected] = useState<string | null>(null)
   const [amount, setAmount] = useState('')
   const [note, setNote] = useState('')
+  const [category, setCategory] = useState('Other')
   const [showSuccess, setShowSuccess] = useState(false)
 
   const handleSelect = (id: string) => {
@@ -38,11 +44,37 @@ const Send = () => {
     Alert.alert(
       'Confirm Send',
       `Send ₹${parsed.toLocaleString()} to ${contact.name}?${note ? '\n\nNote: ' + note : ''}`,
-      [{ text: 'Cancel' }, { text: 'Send', onPress: () => {
-        // show the sent-success screen (replace with real send logic)
-        setShowSuccess(true)
-      }}]
+      [{ text: 'Cancel' }, { text: 'Send', onPress: sendMoney }]
     )
+  }
+
+  const sendMoney = async () => {
+    try {
+      const contact = contacts.find(c => c.id === selected)!
+      const parsed = parseFloat(amount.replace(/[^0-9.]/g, ''))
+      
+      const response = await fetch(api('/api/expenses'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: `Sent to ${contact.name}`,
+          amount: -parsed,
+          category: category,
+          description: note || undefined
+        })
+      })
+      
+      if (response.ok) {
+        setShowSuccess(true)
+      } else {
+        Alert.alert('Error', 'Failed to send money. Please try again.')
+      }
+    } catch (err) {
+      console.warn('Failed to send money', err)
+      Alert.alert('Error', 'Failed to send money. Please try again.')
+    }
   }
 
   return (
@@ -92,6 +124,19 @@ const Send = () => {
               style={styles.input}
             />
 
+            <Text style={[styles.inputLabel, { marginTop: 12 }]}>Category</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
+              {FIXED_CATEGORIES.map(cat => (
+                <TouchableOpacity
+                  key={cat}
+                  style={[styles.categoryBtn, category === cat && styles.categorySelected]}
+                  onPress={() => setCategory(cat)}
+                >
+                  <Text style={[styles.categoryText, category === cat && styles.categoryTextSelected]}>{cat}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
             <Text style={[styles.inputLabel, { marginTop: 12 }]}>Note (optional)</Text>
             <TextInput
               placeholder="e.g. dinner, taxi"
@@ -130,6 +175,9 @@ const Send = () => {
                 setAmount('')
                 setNote('')
                 setSelected(null)
+                setCategory('Other')
+                // Navigate to index to refresh recent activity
+                router.push('/(tabs)/')
               }}
             >
               <Text style={styles.doneText}>Done</Text>
@@ -291,5 +339,29 @@ const styles = StyleSheet.create({
   doneText: {
     color: Colors.white,
     fontWeight: '700',
+  },
+  categoryScroll: {
+    marginBottom: 8,
+  },
+  categoryBtn: {
+    backgroundColor: '#0b1114',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  categorySelected: {
+    backgroundColor: Colors.tintColor,
+    borderColor: Colors.tintColor,
+  },
+  categoryText: {
+    color: Colors.gray,
+    fontSize: 12,
+  },
+  categoryTextSelected: {
+    color: Colors.white,
+    fontWeight: '600',
   },
 })

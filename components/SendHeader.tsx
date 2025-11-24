@@ -13,12 +13,6 @@ const SendHeader = () => {
         <View style={styles.userInfoWrapper}>
           <Text style={styles.boldText}>Pay</Text>
         </View>
-        <TouchableOpacity
-          onPress={() => { }}
-          style={styles.btnWrapper}
-        >
-          <Ionicons name="search-circle" size={30} color={Colors.white} style={{marginLeft: 60, marginBottom: 0}} />
-        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -32,7 +26,7 @@ const styles = StyleSheet.create({
   },
   wrapper: {
     flexDirection: "row",
-    justifyContent: "space-around",
+    justifyContent: "center",
     height: 40,
     alignItems: "center",
     paddingHorizontal: 20,
@@ -40,21 +34,10 @@ const styles = StyleSheet.create({
   userInfoWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    marginLeft: 130,
   },
   boldText: {
     fontWeight: '700',
     color: Colors.white,
     fontSize: 24,
-  },
-  btnWrapper: {
-    justifyContent: "flex-end",
-    alignItems: "flex-end",
-    display: "flex",
-    padding: 6,
-  },
-  btnText: {
-    color: Colors.white,
-    fontSize: 12,
-  },
+  }
 });

@@ -397,3 +397,13 @@
 {"timestamp":"2025-11-24T16:12:24.026Z","method":"GET","url":"/api/user","status":304,"durationMs":1.53,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
 {"timestamp":"2025-11-24T16:12:34.593Z","method":"GET","url":"/api/envelopes/fixed","status":304,"durationMs":9.75,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
 {"timestamp":"2025-11-24T16:12:49.065Z","method":"GET","url":"/api/cards/summary","status":304,"durationMs":4.51,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
+{"timestamp":"2025-11-24T16:14:25.684Z","method":"GET","url":"/api/cards/summary","status":304,"durationMs":4.79,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
+{"timestamp":"2025-11-24T16:14:52.245Z","method":"GET","url":"/api/envelopes/fixed","status":304,"durationMs":8.73,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
+{"timestamp":"2025-11-24T16:14:55.106Z","method":"GET","url":"/api/cards/status","status":304,"durationMs":1.82,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
+{"timestamp":"2025-11-24T16:15:02.261Z","method":"GET","url":"/api/envelopes/fixed","status":304,"durationMs":9.34,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
+{"timestamp":"2025-11-24T16:15:12.363Z","method":"GET","url":"/api/cards/summary","status":304,"durationMs":5.07,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
+{"timestamp":"2025-11-24T16:15:20.611Z","method":"GET","url":"/api/cards/summary","status":304,"durationMs":3.78,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
+{"timestamp":"2025-11-24T16:15:39.925Z","method":"GET","url":"/api/cards/summary","status":304,"durationMs":4.16,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
+{"timestamp":"2025-11-24T16:19:57.542Z","method":"GET","url":"/api/envelopes/fixed","status":304,"durationMs":11.19,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
+{"timestamp":"2025-11-24T16:20:23.540Z","method":"POST","url":"/api/expenses","status":201,"durationMs":14.45,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
+{"timestamp":"2025-11-24T16:20:35.795Z","method":"GET","url":"/api/envelopes/fixed","status":304,"durationMs":14.54,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
