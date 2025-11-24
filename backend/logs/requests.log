@@ -10,3 +10,8 @@
 {"timestamp":"2025-11-24T13:42:22.524Z","method":"GET","url":"/api/expenses","status":304,"durationMs":2.15,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
 {"timestamp":"2025-11-24T13:42:22.548Z","method":"GET","url":"/api/budget","status":304,"durationMs":1.57,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
 {"timestamp":"2025-11-24T13:42:41.061Z","method":"PUT","url":"/api/budget","status":200,"durationMs":7.22,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
+{"timestamp":"2025-11-24T13:44:31.267Z","method":"GET","url":"/api/budget","status":200,"durationMs":15.12,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
+{"timestamp":"2025-11-24T13:44:31.307Z","method":"GET","url":"/api/expenses","status":304,"durationMs":3.49,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
+{"timestamp":"2025-11-24T13:47:51.485Z","method":"GET","url":"/api/budget","status":304,"durationMs":11.04,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
+{"timestamp":"2025-11-24T13:47:51.488Z","method":"GET","url":"/api/user","status":200,"durationMs":11.17,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
+{"timestamp":"2025-11-24T13:47:51.489Z","method":"GET","url":"/api/expenses","status":304,"durationMs":2.52,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}

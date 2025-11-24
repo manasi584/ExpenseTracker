@@ -1,5 +1,6 @@
 const express = require('express');
 const Budget = require('../models/Budget');
+const Expense = require('../models/Expense');
 const requestLogger = require('../../middleware/requestLogger');
 
 const router = express.Router();
@@ -12,7 +13,12 @@ router.get('/', async (req, res) => {
     if (!budget) {
       budget = await Budget.create({ budget: 20000, spent: 0 });
     }
-    res.json(budget);
+    
+    // Calculate actual spent from expenses (positive amounts only)
+    const expenses = await Expense.find({ amount: { $gt: 0 } });
+    const actualSpent = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+    
+    res.json({ budget: budget.budget, spent: actualSpent });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch budget' });
   }

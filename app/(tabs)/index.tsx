@@ -65,6 +65,7 @@ const HomeScreen = () => {
   const [spent, setSpent] = useState(0)
   const [settingBudget, setSettingBudget] = useState(false)
   const [newBudget, setNewBudget] = useState('')
+  const [cardsOwned, setCardsOwned] = useState(1)
 
   if (loading) {
     return (
@@ -81,7 +82,6 @@ const HomeScreen = () => {
   const symbol = currencies[currency].symbol
   const remaining = budget - spent
   const progress = Math.min(1, spent / budget)
-  const cardsOwned = 1 
   const investmentsTotal = sampleInvestments.reduce((s, i) => s + i.value, 0)
   const netBalance = budget - spent + investmentsTotal
 
@@ -110,9 +110,14 @@ const HomeScreen = () => {
       .then((created) => {
         // prepend server-created expense
         setExpenses((s) => [created, ...s])
-        // refresh budget data if it was an expense (positive amount)
+        // refresh budget data to get accurate spent calculation
         if (amountInINR > 0) {
-          setSpent(prev => prev + amountInINR)
+          fetch(api('/api/budget'))
+            .then(r => r.json())
+            .then(budgetData => {
+              if (budgetData) setSpent(budgetData.spent || 0)
+            })
+            .catch(() => {})
         }
         setTitle('')
         setCategory('')
@@ -179,14 +184,18 @@ const HomeScreen = () => {
     
     Promise.all([
       fetch(api('/api/expenses')).then(r => r.json()),
-      fetch(api('/api/budget')).then(r => r.json())
+      fetch(api('/api/budget')).then(r => r.json()),
+      fetch(api('/api/user')).then(r => r.json())
     ])
-      .then(([expensesList, budgetData]) => {
+      .then(([expensesList, budgetData, userData]) => {
         if (!mounted) return
         if (Array.isArray(expensesList) && expensesList.length) setExpenses(expensesList)
         if (budgetData) {
           setBudget(budgetData.budget || 20000)
           setSpent(budgetData.spent || 0)
+        }
+        if (userData) {
+          setCardsOwned(userData.cards || 1)
         }
       })
       .catch((err) => {
