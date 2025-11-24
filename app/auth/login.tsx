@@ -2,7 +2,7 @@ import { AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { Redirect } from 'expo-router';
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
     Alert,
     Animated,
@@ -13,14 +13,14 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { api } from '@/constants/Backend';
 
 const App = () => {
   const [passcode, setPasscode] = useState('');
   const [authenticated, setAuthenticated] = useState(false);
   const [loadingRedirect, setLoadingRedirect] = useState(false);
+  const [userProfile, setUserProfile] = useState({ name: 'John Doe', email: 'johndoe@example.com' });
   const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  const CORRECT_PASSCODE = '123456';
 
   const startFadeAnimation = () => {
     setLoadingRedirect(true);
@@ -39,12 +39,7 @@ const App = () => {
       setPasscode(newPasscode);
 
       if (newPasscode.length === 6) {
-        if (newPasscode === CORRECT_PASSCODE) {
-          startFadeAnimation();
-        } else {
-          Alert.alert('Wrong Passcode');
-          setPasscode('');
-        }
+        validatePasscode(newPasscode);
       }
     }
   };
@@ -67,11 +62,55 @@ const App = () => {
     });
 
     if (result.success) {
-      startFadeAnimation();
+      authenticateUser();
     } else {
       Alert.alert('Authentication Failed');
     }
   };
+
+  const validatePasscode = async (enteredPasscode) => {
+    try {
+      const response = await fetch(api('/api/user/validate-passcode'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ passcode: enteredPasscode })
+      });
+      const result = await response.json();
+      if (result.valid) {
+        authenticateUser();
+      } else {
+        Alert.alert('Wrong Passcode');
+        setPasscode('');
+      }
+    } catch (err) {
+      Alert.alert('Authentication Error', 'Could not validate passcode');
+      setPasscode('');
+    }
+  };
+
+  const authenticateUser = async () => {
+    try {
+      const response = await fetch(api('/api/user'));
+      const userData = await response.json();
+      if (userData) {
+        setUserProfile(userData);
+      }
+    } catch (err) {
+      console.warn('Failed to fetch user profile');
+    }
+    startFadeAnimation();
+  };
+
+  useEffect(() => {
+    fetch(api('/api/user'))
+      .then(r => r.json())
+      .then(userData => {
+        if (userData) {
+          setUserProfile(userData);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   if (authenticated) return <Redirect href="/(tabs)" />;
 
@@ -88,7 +127,7 @@ const App = () => {
             style={styles.avatar}
           />
           <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.name}>John Doe</Text>
+          <Text style={styles.name}>{userProfile.name}</Text>
 
           <View style={styles.passcodeRow}>
             <AntDesign name="lock" size={24} color="limegreen" />

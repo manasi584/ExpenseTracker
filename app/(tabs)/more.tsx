@@ -2,17 +2,53 @@ import { UserHeader } from '@/components/Header'
 import MoreHeader from '@/components/MoreHeader'
 import Hr from '@/components/ui/Hr'
 import { Colors } from '@/constants/Colors'
+import { useAuth } from '@/hooks/useAuth'
 import { Ionicons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
-import React from 'react'
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { router } from 'expo-router'
+import React, { useState, useEffect } from 'react'
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { api } from '@/constants/Backend'
 
 const Page = () => {
+  const { user } = useAuth();
+  const [userProfile, setUserProfile] = useState(null);
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Logout', style: 'destructive', onPress: () => router.replace('/auth/login') }
+      ]
+    );
+  };
+
+  const handleAccountDetails = () => {
+    if (userProfile) {
+      Alert.alert(
+        'Account Details',
+        `Name: ${userProfile.name}\nEmail: ${userProfile.email}\nCards: ${userProfile.cards}\nBudget: ₹${userProfile.budget.toLocaleString()}`,
+        [{ text: 'OK' }]
+      );
+    }
+  };
+
+  useEffect(() => {
+    fetch(api('/api/user'))
+      .then(r => r.json())
+      .then(userData => setUserProfile(userData))
+      .catch(() => {});
+  }, []);
+
   return (
     <>
       <MoreHeader />
       <ScrollView style={[styles.container, {marginBottom: 20}]} showsVerticalScrollIndicator={false}>
-        <UserHeader />
+        <TouchableOpacity onPress={handleAccountDetails}>
+          <UserHeader />
+        </TouchableOpacity>
         <Hr />
 
         <View style={styles.content}>
@@ -104,6 +140,16 @@ const Page = () => {
             </View>
             <Ionicons name="chevron-forward" size={22} color={Colors.white} style={styles.chevron} />
           </TouchableOpacity>
+
+          <TouchableOpacity style={[styles.row, styles.logoutRow]} onPress={handleLogout}>
+            <View style={styles.itemLeft}>
+              <Ionicons name="log-out-outline" size={24} color="#ff4444" style={styles.logoutIcon} />
+              <View style={styles.itemBody}>
+                <Text style={[styles.itemTitle, styles.logoutText]}>Logout</Text>
+                <Text style={styles.itemSubtitle}>Sign out of your account</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </>
@@ -158,5 +204,22 @@ const styles = StyleSheet.create({
   },
   chevron: {
     marginLeft: 12,
+  },
+  logoutRow: {
+    borderBottomWidth: 0,
+    marginTop: 20,
+  },
+  logoutIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 10,
+    backgroundColor: '#111418',
+    padding: 12,
+    marginRight: 12,
+    textAlign: 'center',
+    textAlignVertical: 'center',
+  },
+  logoutText: {
+    color: '#ff4444',
   },
 })

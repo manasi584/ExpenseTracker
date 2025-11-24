@@ -1,6 +1,7 @@
 const express = require('express');
 const Expense = require('../models/Expense');
 const Budget = require('../models/Budget');
+const User = require('../models/User');
 const requestLogger = require('../../middleware/requestLogger');
 
 const router = express.Router();
@@ -11,7 +12,15 @@ router.use(requestLogger);
 // GET /api/expenses
 router.get('/', async (req, res) => {
   try {
-    const list = await Expense.find().sort({ createdAt: -1 });
+    const user = await User.findOne();
+    if (!user) {
+      return res.json([]);
+    }
+    const budget = await Budget.findOne({ userId: user._id });
+    if (!budget) {
+      return res.json([]);
+    }
+    const list = await Expense.find({ budgetId: budget._id }).sort({ createdAt: -1 });
     res.json(list);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch expenses' });
@@ -25,7 +34,18 @@ router.post('/', async (req, res) => {
     if (!title || !category || typeof amount === 'undefined') {
       return res.status(400).json({ error: 'title, category and amount are required' });
     }
-    const expense = await Expense.create({ title, category, amount });
+    
+    const user = await User.findOne();
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    let budget = await Budget.findOne({ userId: user._id });
+    if (!budget) {
+      budget = await Budget.create({ budget: 20000, spent: 0, userId: user._id });
+    }
+    
+    const expense = await Expense.create({ title, category, amount, budgetId: budget._id });
     res.status(201).json(expense);
   } catch (err) {
     res.status(500).json({ error: 'Failed to create expense' });

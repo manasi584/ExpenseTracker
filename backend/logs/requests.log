@@ -15,3 +15,4 @@
 {"timestamp":"2025-11-24T13:47:51.485Z","method":"GET","url":"/api/budget","status":304,"durationMs":11.04,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
 {"timestamp":"2025-11-24T13:47:51.488Z","method":"GET","url":"/api/user","status":200,"durationMs":11.17,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
 {"timestamp":"2025-11-24T13:47:51.489Z","method":"GET","url":"/api/expenses","status":304,"durationMs":2.52,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
+{"timestamp":"2025-11-24T14:02:58.540Z","method":"GET","url":"/api/expenses","status":200,"durationMs":10.26,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
