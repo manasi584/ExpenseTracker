@@ -9,6 +9,7 @@ const Header = () => {
   const [showTransactions, setShowTransactions] = useState(false);
   const [topTransactions, setTopTransactions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [userProfile, setUserProfile] = useState({ name: 'User', email: '' });
 
   const fetchTopTransactions = async () => {
     setLoading(true);
@@ -36,6 +37,18 @@ const Header = () => {
   };
 
   useEffect(() => {
+    // Fetch user profile on component mount
+    fetch(api('/api/user'))
+      .then(r => r.json())
+      .then(userData => {
+        if (userData && userData.name) {
+          setUserProfile(userData);
+        }
+      })
+      .catch(() => console.warn('Failed to fetch user profile'));
+  }, []);
+
+  useEffect(() => {
     if (showTransactions) {
       fetchTopTransactions();
     }
@@ -52,7 +65,7 @@ const Header = () => {
             style={styles.userImg}
           />
           <View style={styles.userTxtWrapper}>
-            <Text style={[styles.userText, { fontSize: 12 }]}>Hi, username1</Text>
+            <Text style={[styles.userText, { fontSize: 12 }]}>Hi, {userProfile.name}</Text>
             <Text style={[styles.userText, { fontSize: 16 }]}>
               Your <Text style={styles.boldText}>Budget</Text>
             </Text>
@@ -118,6 +131,19 @@ export default Header;
 
 
 export const UserHeader = () => {
+  const [userProfile, setUserProfile] = useState({ name: 'User', email: 'user@example.com' });
+
+  useEffect(() => {
+    fetch(api('/api/user'))
+      .then(r => r.json())
+      .then(userData => {
+        if (userData) {
+          setUserProfile(userData);
+        }
+      })
+      .catch(() => console.warn('Failed to fetch user profile'));
+  }, []);
+
   return (
     <SafeAreaView style={{ marginTop: -30 }}>
       <View
@@ -143,9 +169,9 @@ export const UserHeader = () => {
             }}
           />
           <View style={styles.userTxtWrapper}>
-            <Text style={[styles.userText, { fontSize: 18, fontWeight: "bold" }]}>John Doe (username1)</Text>
+            <Text style={[styles.userText, { fontSize: 18, fontWeight: "bold" }]}>{userProfile.name}</Text>
             <Text style={[styles.userText, { fontSize: 15, color: Colors.gray }]}>
-              Account Details
+              {userProfile.email}
             </Text>
           </View>
         </View>

@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { Image } from 'expo-image'
 import React, { useState, useEffect } from 'react'
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Platform} from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { BACKEND_BASE, api } from '@/constants/Backend'
 
 const currencies = {
@@ -61,6 +62,8 @@ const HomeScreen = () => {
   const [settingBudget, setSettingBudget] = useState(false)
   const [newBudget, setNewBudget] = useState('')
   const [cardsOwned, setCardsOwned] = useState(0)
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false)
+  const categories = ['Groceries', 'Transportation', 'Utilities', 'Dining Out', 'Entertainment', 'Other']
 
   if (loading) {
     return (
@@ -318,11 +321,6 @@ const HomeScreen = () => {
                 );
               })
             )}
-
-            <TouchableOpacity style={styles.viewMore}>
-              <Image source={require('@/assets/svgs/search.svg')} style={{ width: 20, height: 20, marginRight: 8 }} />
-              <Text style={styles.viewMoreText}>View More</Text>
-            </TouchableOpacity>
           </View>
 
           {/* Add Expense Modal */}
@@ -331,7 +329,34 @@ const HomeScreen = () => {
               <View style={styles.modalContainer}>
                 <Text style={[styles.sectionTitle, { marginBottom: 12 }]}>Add Expense</Text>
                 <TextInput placeholder="Title" placeholderTextColor="#9AA0A4" style={styles.input} value={title} onChangeText={setTitle} />
-                <TextInput placeholder="Category" placeholderTextColor="#9AA0A4" style={styles.input} value={category} onChangeText={setCategory} />
+                
+                <TouchableOpacity 
+                  style={[styles.input, styles.dropdownInput]} 
+                  onPress={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                >
+                  <Text style={[styles.dropdownText, !category && styles.placeholderText]}>
+                    {category || 'Select Category'}
+                  </Text>
+                  <Ionicons name={showCategoryDropdown ? 'chevron-up' : 'chevron-down'} size={20} color={Colors.gray} />
+                </TouchableOpacity>
+                
+                {showCategoryDropdown && (
+                  <View style={styles.dropdown}>
+                    {categories.map((cat) => (
+                      <TouchableOpacity
+                        key={cat}
+                        style={styles.dropdownItem}
+                        onPress={() => {
+                          setCategory(cat)
+                          setShowCategoryDropdown(false)
+                        }}
+                      >
+                        <Text style={styles.dropdownItemText}>{cat}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+                
                 <TextInput placeholder="Amount" placeholderTextColor="#9AA0A4" style={styles.input} value={amount} onChangeText={setAmount} keyboardType="numeric" />
 
                 <View style={styles.modalButtons}>
@@ -396,6 +421,35 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 8,
     marginBottom: 10,
+  },
+  dropdownInput: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dropdownText: {
+    color: Colors.white,
+    flex: 1,
+  },
+  placeholderText: {
+    color: '#9AA0A4',
+  },
+  dropdown: {
+    backgroundColor: '#081118',
+    borderRadius: 8,
+    marginBottom: 10,
+    marginTop: -10,
+    borderWidth: 1,
+    borderColor: '#243038',
+  },
+  dropdownItem: {
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#243038',
+  },
+  dropdownItemText: {
+    color: Colors.white,
   },
   modalButtons: {
     flexDirection: 'row',

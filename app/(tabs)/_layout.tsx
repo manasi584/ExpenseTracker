@@ -42,6 +42,14 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
+        name="envelope"
+        options={{
+          title: 'Budget',
+          tabBarIcon: ({ color }) => <MaterialCommunityIcons size={28} name="wallet-outline" color={color} />,
+        }}
+      />
+
+      <Tabs.Screen
         name="invest"
         options={{
           title: 'Invest',

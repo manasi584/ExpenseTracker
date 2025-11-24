@@ -8,9 +8,11 @@ router.use(requestLogger);
 // GET /api/user
 router.get('/', async (req, res) => {
   try {
-    let user = await User.findOne();
+    // For now, look for user2 since that's who logged in
+    let user = await User.findOne({ name: 'user2' });
     if (!user) {
-      user = await User.create({ name: 'John Doe', email: 'johndoe@example.com', budget: 20000, cards: 1, passcode: '123456' });
+      // If user2 doesn't exist, create it
+      user = await User.create({ name: 'user2', email: 'user2@example.com', budget: 20000, cards: 1, passcode: '123456' });
     }
     res.json(user);
   } catch (err) {
