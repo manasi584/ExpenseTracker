@@ -48,8 +48,24 @@ const Page = () => {
 		fetchCardStatus();
 	}, []);
 
-	const handleGetCard = () => {
-		setShowSuccessModal(true);
+	const handleGetCard = async () => {
+		try {
+			const response = await fetch(api('/api/cardRequests'), {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					cardType: 'Benefits Card',
+					status: 'pending'
+				})
+			});
+			if (response.ok) {
+				setShowSuccessModal(true);
+			}
+		} catch (err) {
+			console.warn('Failed to create card request', err);
+		}
 	};
 
 	const handleLearnMore = () => {
