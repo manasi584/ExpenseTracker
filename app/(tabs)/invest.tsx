@@ -6,6 +6,7 @@ import React, { useState } from 'react'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 const sampleExpenses = [
+  // amounts stored in base currency (INR)
   { id: '1', title: 'Expense 1', note: 'Groceries', time: '4:06 PM', amount: 1500 },
   { id: '2', title: 'Expense 2', note: 'Transport', time: '10:15 AM', amount: 500 },
   { id: '3', title: 'Expense 3', note: 'Freelance (income)', time: '8:05 AM', amount: -2000 }, // negative = income
@@ -21,6 +22,27 @@ const currencies = {
   INR: { label: 'Indian Rupee', symbol: '₹', flag: require('@/assets/svgs/indian.svg') },
   USD: { label: 'US Dollar', symbol: '$', flag: require('@/assets/svgs/us.svg') },
   CNY: { label: 'Chinese Yuan', symbol: '¥', flag: require('@/assets/svgs/china.svg') },
+}
+
+// Exchange rates (static, base = INR). Multiply base-INR -> target currency.
+const exchangeRates: Record<string, number> = {
+  INR: 1,
+  // 1 INR ≈ 0.012 USD (example), 0.085 CNY
+  USD: 0.012,
+  CNY: 0.085,
+}
+
+// Convert amount from base (INR) into currently selected currency
+const convert = (amountInINR: number, targetCurrency: keyof typeof currencies) => {
+  const rate = exchangeRates[targetCurrency] ?? 1
+  return amountInINR * rate
+}
+
+const formatCurrency = (amountInINR: number, targetCurrency: keyof typeof currencies) => {
+  const converted = convert(amountInINR, targetCurrency)
+  // show 0-2 decimals for small values, otherwise drop decimals
+  const opts: Intl.NumberFormatOptions = Math.abs(converted) < 1 ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } : { maximumFractionDigits: 2 }
+  return `${currencies[targetCurrency].symbol}${converted.toLocaleString(undefined, opts)}`
 }
 
 const MONTHLY_BUDGET = 20000
@@ -60,17 +82,17 @@ const Invest = () => {
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.budgetAmount}>{symbol}{MONTHLY_BUDGET.toLocaleString()}</Text>
+          <Text style={styles.budgetAmount}>{formatCurrency(MONTHLY_BUDGET, currency)}</Text>
 
           <View style={styles.row}>
             <View>
               <Text style={styles.smallLabel}>Spent</Text>
-              <Text style={styles.spent}>{symbol}{SPENT.toLocaleString()}</Text>
+              <Text style={styles.spent}>{formatCurrency(SPENT, currency)}</Text>
             </View>
 
             <View>
               <Text style={styles.smallLabel}>Remaining</Text>
-              <Text style={styles.remaining}>{symbol}{remaining.toLocaleString()}</Text>
+              <Text style={styles.remaining}>{formatCurrency(remaining, currency)}</Text>
             </View>
           </View>
 
@@ -129,7 +151,7 @@ const Invest = () => {
               <View style={{ flex: 1 }}>
                 <Text style={styles.investTitle}>{opt.name}</Text>
                 <Text style={styles.investDesc}>{opt.desc}</Text>
-                <Text style={styles.investMin}>{`Min: ${symbol}${opt.min.toLocaleString()}`}</Text>
+                <Text style={styles.investMin}>{`Min: ${formatCurrency(opt.min, currency)}`}</Text>
               </View>
               <TouchableOpacity style={styles.investCTA}>
                 <Text style={styles.ctaText}>Invest</Text>
@@ -151,7 +173,7 @@ const Invest = () => {
                   <Text style={styles.txNote}>{t.note} • {t.time}</Text>
                 </View>
                 <Text style={[styles.txAmount, isIncome ? styles.income : styles.expense]}>
-                  {isIncome ? '+' : symbol}{Math.abs(t.amount).toLocaleString()}
+                  {isIncome ? '+' : ''}{formatCurrency(Math.abs(t.amount), currency)}
                 </Text>
               </View>
             )

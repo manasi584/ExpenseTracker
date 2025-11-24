@@ -3,7 +3,7 @@ import Header from '@/components/Header'
 import { Colors } from '@/constants/Colors'
 import { useAuth } from '@/hooks/useAuth'
 import { Image } from 'expo-image'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 
 const currencies = {
@@ -14,16 +14,45 @@ const currencies = {
 
 // initial list (kept as initial constant then moved into state in component)
 const initialExpenses = [
-  { id: '1', title: 'Expense 1', detail: 'Groceries', time: '4:06 PM', amount: 1500 },
-  { id: '2', title: 'Expense 2', detail: 'Transport', time: '10:15 AM', amount: 500 },
-  { id: '3', title: 'Expense 3', detail: 'Salary (income)', time: '8:05 AM', amount: -2000 }, // negative = income
+  { id: '1', title: 'Expense 1', category: 'Groceries', time: '4:06 PM', amount: 1500 },
+  { id: '2', title: 'Expense 2', category: 'Transport', time: '10:15 AM', amount: 500 },
+  { id: '3', title: 'Expense 3', category: 'Salary (income)', time: '8:05 AM', amount: -2000 }, // negative = income
 ];
 
-// sample investments shown in overview (replace with real data later)
+// add this missing sampleInvestments constant
 const sampleInvestments = [
   { id: 'inv1', name: 'Index Fund', value: 8000 },
   { id: 'inv2', name: 'High Yield', value: 12000 },
-];
+]
+
+// base URL for backend (Android emulator uses 10.0.2.2)
+const BASE_URL = Platform.OS === 'android' ? 'http://10.0.2.2:4000' : 'http://localhost:4000'
+
+// Exchange rates (static) — base currency is INR
+const exchangeRates: Record<string, number> = {
+  INR: 1,
+  USD: 0.012, // 1 INR -> 0.012 USD (example)
+  CNY: 0.085, // 1 INR -> 0.085 CNY (example)
+}
+
+// Convert from INR -> target currency
+const convert = (amountInINR: number, target: keyof typeof currencies) => {
+  const rate = exchangeRates[target] ?? 1
+  return amountInINR * rate
+}
+
+// Convert from target currency -> INR (for sending to backend)
+const toBase = (amountInTarget: number, target: keyof typeof currencies) => {
+  const rate = exchangeRates[target] ?? 1
+  // avoid divide by zero
+  return rate ? amountInTarget / rate : amountInTarget
+}
+
+const formatCurrency = (amountInINR: number, target: keyof typeof currencies) => {
+  const v = convert(amountInINR, target)
+  const opts: Intl.NumberFormatOptions = Math.abs(v) < 1 ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } : { maximumFractionDigits: 2 }
+  return `${currencies[target].symbol}${v.toLocaleString(undefined, opts)}`
+}
 
 const BUDGET = 20000;
 const SPENT = 5000; // sample
@@ -36,8 +65,9 @@ const HomeScreen = () => {
   // modal / form state for adding an expense
   const [adding, setAdding] = useState(false)
   const [title, setTitle] = useState('')
-  const [detail, setDetail] = useState('')
+  const [category, setCategory] = useState('')
   const [amount, setAmount] = useState('')
+  const [fetching, setFetching] = useState(false)
 
   if (loading) {
     return (
@@ -61,25 +91,77 @@ const HomeScreen = () => {
   // add expense handler
   const handleAddExpense = () => {
     const parsed = Number(amount)
-    if (!title.trim() || !detail.trim() || !amount.trim() || Number.isNaN(parsed)) {
-      Alert.alert('Invalid input', 'Please provide title, detail and a numeric amount.')
+    if (!title.trim() || !category.trim() || !amount.trim() || Number.isNaN(parsed)) {
+      Alert.alert('Invalid input', 'Please provide title, category and a numeric amount.')
       return
     }
-    const newExpense = {
-      id: Date.now().toString(),
-      title: title.trim(),
-      detail: detail.trim(),
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      amount: parsed,
-    }
-    // prepend to list
-    setExpenses((s) => [newExpense, ...s])
-    // reset form and close
-    setTitle('')
-    setDetail('')
-    setAmount('')
-    setAdding(false)
+    // convert user-entered amount (in selected currency) to base INR before sending
+    const amountInINR = toBase(parsed, currency)
+    // POST to backend
+    fetch(`${BASE_URL}/api/expenses`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: title.trim(), category: category.trim(), amount: amountInINR })
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}))
+          throw new Error(err.error || 'Failed to create expense')
+        }
+        return res.json()
+      })
+      .then((created) => {
+        // prepend server-created expense
+        setExpenses((s) => [created, ...s])
+        setTitle('')
+        setCategory('')
+        setAmount('')
+        setAdding(false)
+      })
+      .catch((err) => {
+        console.warn('Add expense failed', err)
+        Alert.alert('Save failed', err.message || 'Could not save expense. Added locally instead.')
+        // fallback: add locally
+        const newExpense = {
+          id: Date.now().toString(),
+          title: title.trim(),
+          category: category.trim(),
+          time: new Date().toISOString(),
+          amount: amountInINR, // store base INR locally
+        }
+        setExpenses((s) => [newExpense, ...s])
+        setTitle('')
+        setCategory('')
+        setAmount('')
+        setAdding(false)
+      })
   }
+
+  // helper to format time returned from server or keep local strings
+  const formatTime = (t: any) => {
+    if (!t) return ''
+    const d = new Date(t)
+    if (!isNaN(d.getTime())) return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    return String(t)
+  }
+
+  // fetch list from backend on mount
+  useEffect(() => {
+    let mounted = true
+    setFetching(true)
+    fetch(`${BASE_URL}/api/expenses`)
+      .then((r) => r.json())
+      .then((list) => {
+        if (!mounted) return
+        // keep initial as fallback if empty
+        if (Array.isArray(list) && list.length) setExpenses(list)
+      })
+      .catch((err) => {
+        console.warn('Failed to load expenses', err)
+      })
+      .finally(() => mounted && setFetching(false))
+    return () => { mounted = false }
+  }, [])
 
   return (
     <>
@@ -113,13 +195,13 @@ const HomeScreen = () => {
 
             <View style={styles.overviewItem}>
               <Image source={require('@/assets/svgs/chart.svg')} style={styles.overviewIcon} />
-              <Text style={styles.overviewValue}>{symbol}{investmentsTotal.toLocaleString()}</Text>
+              <Text style={styles.overviewValue}>{formatCurrency(investmentsTotal, currency)}</Text>
               <Text style={styles.overviewLabel}>Investments</Text>
             </View>
 
             <View style={styles.overviewItem}>
               <Image source={require('@/assets/svgs/str.svg')} style={styles.overviewIcon} />
-              <Text style={styles.overviewValue}>{symbol}{netBalance.toLocaleString()}</Text>
+              <Text style={styles.overviewValue}>{formatCurrency(netBalance, currency)}</Text>
               <Text style={styles.overviewLabel}>Net Balance</Text>
             </View>
           </View>
@@ -128,10 +210,10 @@ const HomeScreen = () => {
             <Text style={styles.title}>Monthly Budget</Text>
 
             <View style={styles.amountRow}>
-              <Text style={styles.amountLarge}>{symbol}{BUDGET.toLocaleString()}</Text>
+              <Text style={styles.amountLarge}>{formatCurrency(BUDGET, currency)}</Text>
               <View style={styles.smallAmounts}>
-                <Text style={styles.spent}>Spent: {symbol}{SPENT.toLocaleString()}</Text>
-                <Text style={styles.remaining}>Remaining: {symbol}{remaining.toLocaleString()}</Text>
+                <Text style={styles.spent}>Spent: {formatCurrency(SPENT, currency)}</Text>
+                <Text style={styles.remaining}>Remaining: {formatCurrency(remaining, currency)}</Text>
               </View>
             </View>
 
@@ -160,10 +242,10 @@ const HomeScreen = () => {
                   <Image source={require('@/assets/svgs/wallet.svg')} style={styles.expenseIcon} />
                   <View style={styles.expenseText}>
                     <Text style={styles.expenseTitle}>{item.title}</Text>
-                    <Text style={styles.expenseDetail}>{item.detail} • {item.time}</Text>
+                    <Text style={styles.expenseDetail}>{item.category} • {formatTime(item.time)}</Text>
                   </View>
                   <Text style={[styles.expenseAmount, isIncome ? styles.income : styles.outcome]}>
-                    {isIncome ? '+' : symbol}{Math.abs(item.amount).toLocaleString()}
+                    {isIncome ? '+' : ''}{formatCurrency(Math.abs(item.amount), currency)}
                   </Text>
                 </View>
               );
@@ -181,7 +263,7 @@ const HomeScreen = () => {
               <View style={styles.modalContainer}>
                 <Text style={[styles.sectionTitle, { marginBottom: 12 }]}>Add Expense</Text>
                 <TextInput placeholder="Title" placeholderTextColor="#9AA0A4" style={styles.input} value={title} onChangeText={setTitle} />
-                <TextInput placeholder="Category" placeholderTextColor="#9AA0A4" style={styles.input} value={detail} onChangeText={setDetail} />
+                <TextInput placeholder="Category" placeholderTextColor="#9AA0A4" style={styles.input} value={category} onChangeText={setCategory} />
                 <TextInput placeholder="Amount" placeholderTextColor="#9AA0A4" style={styles.input} value={amount} onChangeText={setAmount} keyboardType="numeric" />
 
                 <View style={styles.modalButtons}>
