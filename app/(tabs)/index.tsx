@@ -63,6 +63,8 @@ const HomeScreen = () => {
   const [newBudget, setNewBudget] = useState('')
   const [cardsOwned, setCardsOwned] = useState(0)
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false)
+  const [monthEndSummary, setMonthEndSummary] = useState(null)
+  const [showSummaryModal, setShowSummaryModal] = useState(false)
   const categories = ['Groceries', 'Transportation', 'Utilities', 'Dining Out', 'Entertainment', 'Other']
 
   if (loading) {
@@ -168,6 +170,37 @@ const HomeScreen = () => {
     return String(t)
   }
 
+  const checkMonthEndSummary = async () => {
+    try {
+      const response = await fetch(api('/api/summary/current'))
+      const data = await response.json()
+      if (data.isMonthEnd) {
+        setMonthEndSummary(data)
+        setShowSummaryModal(true)
+      }
+    } catch (error) {
+      console.warn('Failed to check month-end summary:', error)
+    }
+  }
+
+  const handleSaveSummary = async () => {
+    if (!monthEndSummary) return
+    
+    try {
+      await fetch(api('/api/summary/save'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(monthEndSummary)
+      })
+      setShowSummaryModal(false)
+      setMonthEndSummary(null)
+      // Refresh data after reset
+      window.location.reload()
+    } catch (error) {
+      console.warn('Failed to save summary:', error)
+    }
+  }
+
   // fetch expenses and budget from backend on mount
   useEffect(() => {
     let mounted = true
@@ -192,6 +225,8 @@ const HomeScreen = () => {
         if (userData) {
           setCardsOwned(userData.cards)
         }
+        // Check for month-end summary after loading data
+        checkMonthEndSummary()
       })
       .catch((err) => {
         console.warn('Failed to load data', err)
@@ -388,6 +423,58 @@ const HomeScreen = () => {
                 </View>
               </View>
             </KeyboardAvoidingView>
+          </Modal>
+
+          {/* Month-End Summary Modal */}
+          <Modal visible={showSummaryModal} transparent animationType="fade">
+            <View style={styles.modalBackdrop}>
+              <View style={[styles.modalContainer, { maxHeight: '80%' }]}>
+                <Text style={[styles.sectionTitle, { marginBottom: 16, textAlign: 'center' }]}>Month-End Summary</Text>
+                
+                {monthEndSummary && (
+                  <ScrollView showsVerticalScrollIndicator={false}>
+                    <View style={{ marginBottom: 16 }}>
+                      <Text style={styles.summaryMonth}>
+                        {new Date(monthEndSummary.year, monthEndSummary.month - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                      </Text>
+                    </View>
+                    
+                    <View style={styles.summaryRow}>
+                      <Text style={styles.summaryLabel}>Budget:</Text>
+                      <Text style={styles.summaryValue}>{formatCurrency(monthEndSummary.totalBudget, currency)}</Text>
+                    </View>
+                    
+                    <View style={styles.summaryRow}>
+                      <Text style={styles.summaryLabel}>Spent:</Text>
+                      <Text style={[styles.summaryValue, { color: '#ff6b6b' }]}>{formatCurrency(monthEndSummary.totalSpent, currency)}</Text>
+                    </View>
+                    
+                    <View style={styles.summaryRow}>
+                      <Text style={styles.summaryLabel}>Income:</Text>
+                      <Text style={[styles.summaryValue, { color: Colors.green }]}>{formatCurrency(monthEndSummary.totalIncome, currency)}</Text>
+                    </View>
+                    
+                    <Text style={[styles.sectionTitle, { fontSize: 14, marginTop: 16, marginBottom: 8 }]}>Category Breakdown</Text>
+                    
+                    {monthEndSummary.categoryBreakdown.map((cat, index) => (
+                      <View key={index} style={styles.categoryRow}>
+                        <Text style={styles.categoryName}>{cat.category}</Text>
+                        <View style={styles.categoryAmounts}>
+                          <Text style={styles.categorySpent}>{formatCurrency(cat.spent, currency)}</Text>
+                          <Text style={styles.categoryAllocated}>/ {formatCurrency(cat.allocated, currency)}</Text>
+                        </View>
+                      </View>
+                    ))}
+                  </ScrollView>
+                )}
+                
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity style={[styles.modalBtn, { backgroundColor: Colors.tintColor }]} onPress={handleSaveSummary}>
+                    <Text style={styles.modalBtnText}>Save & Reset for New Month</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
           </Modal>
 
         </ScrollView>
@@ -640,5 +727,50 @@ const styles = StyleSheet.create({
     color: Colors.gray,
     fontSize: 12,
     marginTop: 6,
+  },
+  summaryMonth: {
+    color: Colors.white,
+    fontSize: 18,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  summaryLabel: {
+    color: Colors.gray,
+    fontSize: 14,
+  },
+  summaryValue: {
+    color: Colors.white,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  categoryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#243038',
+  },
+  categoryName: {
+    color: Colors.white,
+    fontSize: 13,
+  },
+  categoryAmounts: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  categorySpent: {
+    color: '#ff6b6b',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  categoryAllocated: {
+    color: Colors.gray,
+    fontSize: 13,
   },
 })

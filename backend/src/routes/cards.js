@@ -66,4 +66,26 @@ router.put('/approve/:requestId', async (req, res) => {
   }
 });
 
+// GET /api/cards/summary
+router.get('/summary', async (req, res) => {
+  try {
+    const user = await User.findOne({ name: 'user2' });
+    if (!user) {
+      return res.json([]);
+    }
+    
+    const cardRequests = await CardRequest.find({ userId: user._id });
+    const summary = cardRequests.map(card => ({
+      cardType: card.cardType,
+      cardholder: card.cardholder,
+      status: card.status,
+      createdAt: card.createdAt
+    }));
+    
+    res.json(summary);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get cards summary' });
+  }
+});
+
 module.exports = router;

@@ -12,6 +12,8 @@ const EnvelopeBudgeting = () => {
   const [showAllocationModal, setShowAllocationModal] = useState(false)
   const [selectedEnvelope, setSelectedEnvelope] = useState(null)
   const [allocationAmount, setAllocationAmount] = useState('')
+  const [showHistoryModal, setShowHistoryModal] = useState(false)
+  const [monthlyHistory, setMonthlyHistory] = useState([])
 
   const totalAllocated = envelopes.reduce((sum, env) => sum + env.allocated, 0)
   const totalSpent = envelopes.reduce((sum, env) => sum + env.spent, 0)
@@ -74,6 +76,16 @@ const EnvelopeBudgeting = () => {
     }
   }
 
+  const fetchMonthlyHistory = async () => {
+    try {
+      const response = await fetch(api('/api/summary/history'))
+      const data = await response.json()
+      setMonthlyHistory(data)
+    } catch (error) {
+      console.warn('Failed to fetch monthly history:', error)
+    }
+  }
+
   useEffect(() => {
     fetchEnvelopes()
   }, [])
@@ -96,6 +108,12 @@ const EnvelopeBudgeting = () => {
     <>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Envelope Budget</Text>
+        <TouchableOpacity onPress={() => {
+          setShowHistoryModal(true)
+          fetchMonthlyHistory()
+        }}>
+          <Ionicons name="calendar-outline" size={28} color={Colors.white} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.container}>
@@ -198,6 +216,49 @@ const EnvelopeBudgeting = () => {
                 <Text style={styles.addText}>Update</Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Monthly History Modal */}
+      <Modal visible={showHistoryModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { height: '80%' }]}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <Text style={styles.modalTitle}>Monthly Summary History</Text>
+              <TouchableOpacity onPress={() => setShowHistoryModal(false)}>
+                <Ionicons name="close" size={24} color={Colors.white} />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {monthlyHistory.length === 0 ? (
+                <Text style={{ color: Colors.gray, textAlign: 'center', marginTop: 40 }}>No monthly summaries yet</Text>
+              ) : (
+                monthlyHistory.map((summary, index) => (
+                  <View key={index} style={styles.historyCard}>
+                    <Text style={styles.historyMonth}>
+                      {new Date(summary.year, summary.month - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                    </Text>
+                    
+                    <View style={styles.historyRow}>
+                      <Text style={styles.historyLabel}>Budget:</Text>
+                      <Text style={styles.historyValue}>₹{summary.totalBudget.toLocaleString()}</Text>
+                    </View>
+                    
+                    <View style={styles.historyRow}>
+                      <Text style={styles.historyLabel}>Spent:</Text>
+                      <Text style={[styles.historyValue, { color: '#ff6b6b' }]}>₹{summary.totalSpent.toLocaleString()}</Text>
+                    </View>
+                    
+                    <View style={styles.historyRow}>
+                      <Text style={styles.historyLabel}>Saved:</Text>
+                      <Text style={[styles.historyValue, { color: Colors.green }]}>₹{(summary.totalBudget - summary.totalSpent).toLocaleString()}</Text>
+                    </View>
+                  </View>
+                ))
+              )}
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -383,6 +444,32 @@ const styles = StyleSheet.create({
   addText: {
     color: Colors.white,
     textAlign: 'center',
+    fontWeight: '600',
+  },
+  historyCard: {
+    backgroundColor: '#0f1720',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+  },
+  historyMonth: {
+    color: Colors.white,
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 12,
+  },
+  historyRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  historyLabel: {
+    color: Colors.gray,
+    fontSize: 14,
+  },
+  historyValue: {
+    color: Colors.white,
+    fontSize: 14,
     fontWeight: '600',
   },
 })

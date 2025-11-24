@@ -3,7 +3,7 @@ import { Colors } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React, { useState, useEffect } from "react";
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { api } from "@/constants/Backend";
 
 const perks = [
@@ -31,27 +31,8 @@ const perks = [
 
 const Page = () => {
 	const [cardStatus, setCardStatus] = useState(null);
-	const [loading, setLoading] = useState(false);
+	const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-	const handleGetCard = async () => {
-		setLoading(true);
-		try {
-			const response = await fetch(api('/api/cards/request'), {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' }
-			});
-			const result = await response.json();
-			if (response.ok) {
-				Alert.alert('Success', 'Card request submitted successfully!');
-				fetchCardStatus();
-			} else {
-				Alert.alert('Request Failed', result.error);
-			}
-		} catch (err) {
-			Alert.alert('Error', 'Could not submit card request');
-		}
-		setLoading(false);
-	};
 
 	const fetchCardStatus = async () => {
 		try {
@@ -66,6 +47,10 @@ const Page = () => {
 	useEffect(() => {
 		fetchCardStatus();
 	}, []);
+
+	const handleGetCard = () => {
+		setShowSuccessModal(true);
+	};
 
 	const handleLearnMore = () => {
 		Alert.alert(
@@ -91,13 +76,12 @@ const Page = () => {
 
 					<View style={styles.ctaRow}>
 						<TouchableOpacity
-							style={[styles.primaryBtn, (cardStatus?.hasRequest || loading) && styles.disabledBtn]}
+							style={styles.primaryBtn}
 							onPress={handleGetCard}
-							disabled={cardStatus?.hasRequest || loading}
 						>
 							<Ionicons name="card" size={18} color={Colors.white} />
 							<Text style={styles.primaryText}>
-								{loading ? 'Submitting...' : cardStatus?.hasRequest ? `Request ${cardStatus.status}` : 'Get Card'}
+								Get Your Card
 							</Text>
 						</TouchableOpacity>
 
@@ -129,12 +113,33 @@ const Page = () => {
 					))}
 				</View>
 
+				<Modal
+					visible={showSuccessModal}
+					transparent
+					animationType="fade"
+				>
+					<View style={styles.modalOverlay}>
+						<View style={styles.modalContent}>
+							<Ionicons name="checkmark-circle" size={40} color={Colors.tintColor} />
+							<Text style={styles.modalText}>Applied Successfully!</Text>
+							<TouchableOpacity
+								style={styles.modalButton}
+								onPress={() => setShowSuccessModal(false)}
+							>
+								<Text style={styles.modalButtonText}>OK</Text>
+							</TouchableOpacity>
+						</View>
+					</View>
+				</Modal>
+
 				<View style={styles.footerNote}>
 					<Text style={styles.footerText}>
 						Physical card delivery and verification may require identity
 						confirmation. Virtual card available instantly.
 					</Text>
 				</View>
+
+
 			</View>
 		</>
 	);
@@ -149,6 +154,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 20,
 		paddingTop: 20,
 	},
+
 	promoCard: {
 		backgroundColor: "#0f1720",
 		borderRadius: 12,
@@ -256,7 +262,37 @@ const styles = StyleSheet.create({
 		fontSize: 13,
 		textAlign: "center",
 	},
-	disabledBtn: {
-		opacity: 0.6,
+	modalOverlay: {
+		flex: 1,
+		backgroundColor: 'rgba(0, 0, 0, 0.7)',
+		justifyContent: 'center',
+		alignItems: 'center',
 	},
+	modalContent: {
+		backgroundColor: '#0f1720',
+		borderRadius: 12,
+		padding: 24,
+		alignItems: 'center',
+		minWidth: 250,
+		borderWidth: 1,
+		borderColor: Colors.tintColor,
+	},
+	modalText: {
+		color: Colors.white,
+		fontSize: 18,
+		fontWeight: '600',
+		marginTop: 12,
+		marginBottom: 20,
+	},
+	modalButton: {
+		backgroundColor: Colors.tintColor,
+		paddingHorizontal: 24,
+		paddingVertical: 10,
+		borderRadius: 8,
+	},
+	modalButtonText: {
+		color: Colors.white,
+		fontWeight: '600',
+	},
+
 });

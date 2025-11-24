@@ -12,6 +12,7 @@ const userRouter = require('./routes/user');
 const investmentsRouter = require('./routes/investments');
 const cardsRouter = require('./routes/cards');
 const envelopesRouter = require('./routes/envelopes');
+const summaryRouter = require('./routes/summary');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -30,6 +31,7 @@ app.use('/api/user', userRouter);
 app.use('/api/investments', investmentsRouter);
 app.use('/api/cards', cardsRouter);
 app.use('/api/envelopes', envelopesRouter);
+app.use('/api/summary', summaryRouter);
 
 // fallback
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));

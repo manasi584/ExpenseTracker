@@ -175,22 +175,7 @@ export const UserHeader = () => {
             </Text>
           </View>
         </View>
-        <TouchableOpacity
-          onPress={() => { }}
-          style={{
-            borderColor: "#666",
-            borderWidth: 1,
-            padding: 6,
-            borderRadius: 50,
-          }}
-        >
-          <Ionicons name="chevron-forward" size={24} color={Colors.white} style={{
-            color: Colors.white,
-            fontWeight: 'bold',
-            fontSize: 26,
-            textAlign: 'center',
-          }} />
-        </TouchableOpacity>
+      
       </View>
     </SafeAreaView>
   );
