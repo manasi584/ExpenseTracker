@@ -1,0 +1,12 @@
+{"timestamp":"2025-11-24T13:36:31.548Z","method":"GET","url":"/api/budget","status":200,"durationMs":13.35,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
+{"timestamp":"2025-11-24T13:36:31.588Z","method":"GET","url":"/api/expenses","status":304,"durationMs":2.98,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
+{"timestamp":"2025-11-24T13:39:46.087Z","method":"POST","url":"/api/expenses","status":201,"durationMs":2.66,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
+{"timestamp":"2025-11-24T13:40:53.882Z","method":"GET","url":"/api/budget","status":200,"durationMs":8.28,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
+{"timestamp":"2025-11-24T13:40:53.884Z","method":"GET","url":"/api/expenses","status":200,"durationMs":7.49,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
+{"timestamp":"2025-11-24T13:42:10.536Z","method":"GET","url":"/api/expenses","status":304,"durationMs":2.76,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
+{"timestamp":"2025-11-24T13:42:10.537Z","method":"GET","url":"/api/budget","status":304,"durationMs":3.23,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
+{"timestamp":"2025-11-24T13:42:15.094Z","method":"GET","url":"/api/expenses","status":304,"durationMs":2.44,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
+{"timestamp":"2025-11-24T13:42:15.095Z","method":"GET","url":"/api/budget","status":304,"durationMs":2.45,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
+{"timestamp":"2025-11-24T13:42:22.524Z","method":"GET","url":"/api/expenses","status":304,"durationMs":2.15,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
+{"timestamp":"2025-11-24T13:42:22.548Z","method":"GET","url":"/api/budget","status":304,"durationMs":1.57,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}
+{"timestamp":"2025-11-24T13:42:41.061Z","method":"PUT","url":"/api/budget","status":200,"durationMs":7.22,"ip":"::ffff:127.0.0.1","userAgent":"okhttp/4.12.0"}

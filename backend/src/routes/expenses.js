@@ -1,7 +1,12 @@
 const express = require('express');
 const Expense = require('../models/Expense');
+const Budget = require('../models/Budget');
+const requestLogger = require('../../middleware/requestLogger');
 
 const router = express.Router();
+
+// Apply request logger to all routes
+router.use(requestLogger);
 
 // GET /api/expenses
 router.get('/', async (req, res) => {
@@ -21,6 +26,18 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'title, category and amount are required' });
     }
     const expense = await Expense.create({ title, category, amount });
+    
+    // Update budget spent amount (only for positive amounts - expenses)
+    if (amount > 0) {
+      let budget = await Budget.findOne();
+      if (!budget) {
+        budget = await Budget.create({ budget: 20000, spent: amount });
+      } else {
+        budget.spent += amount;
+        await budget.save();
+      }
+    }
+    
     res.status(201).json(expense);
   } catch (err) {
     res.status(500).json({ error: 'Failed to create expense' });

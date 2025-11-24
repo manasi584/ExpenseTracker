@@ -7,6 +7,7 @@ dotenv.config();
 require('./db');
 
 const expensesRouter = require('./routes/expenses');
+const budgetRouter = require('./routes/budget');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -20,6 +21,7 @@ app.get('/', (req, res) => res.json({ ok: true, env: process.env.NODE_ENV || 'de
 
 // api
 app.use('/api/expenses', expensesRouter);
+app.use('/api/budget', budgetRouter);
 
 // fallback
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));

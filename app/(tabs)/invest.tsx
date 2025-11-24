@@ -2,32 +2,34 @@ import InvestHeader from '@/components/InvestHeader'
 import { Colors } from '@/constants/Colors'
 import { Ionicons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { api } from '@/constants/Backend'
 
-const sampleExpenses = [
-  // amounts stored in base currency (INR)
+const FALLBACK_EXPENSES = [
   { id: '1', title: 'Expense 1', note: 'Groceries', time: '4:06 PM', amount: 1500 },
   { id: '2', title: 'Expense 2', note: 'Transport', time: '10:15 AM', amount: 500 },
-  { id: '3', title: 'Expense 3', note: 'Freelance (income)', time: '8:05 AM', amount: -2000 }, // negative = income
-];
+  { id: '3', title: 'Expense 3', note: 'Freelance (income)', time: '8:05 AM', amount: -2000 },
+]
 
-const investmentOptions = [
+const FALLBACK_INVESTMENTS = [
   { id: 'i1', name: 'High Yield Savings', desc: 'Low risk, stable returns', min: 500 },
   { id: 'i2', name: 'Index Fund', desc: 'Diversified stock exposure', min: 1000 },
   { id: 'i3', name: 'Corporate Bonds', desc: 'Fixed income, moderate risk', min: 2000 },
-];
+]
 
-const currencies = {
+const FALLBACK_CURRENCIES = {
   INR: { label: 'Indian Rupee', symbol: '₹', flag: require('@/assets/svgs/indian.svg') },
   USD: { label: 'US Dollar', symbol: '$', flag: require('@/assets/svgs/us.svg') },
   CNY: { label: 'Chinese Yuan', symbol: '¥', flag: require('@/assets/svgs/china.svg') },
 }
 
+
+const currencies = FALLBACK_CURRENCIES
+
 // Exchange rates (static, base = INR). Multiply base-INR -> target currency.
 const exchangeRates: Record<string, number> = {
-  INR: 1,
-  // 1 INR ≈ 0.012 USD (example), 0.085 CNY
+  INR: 1,// 1 INR ≈ 0.012 USD (example), 0.085 CNY
   USD: 0.012,
   CNY: 0.085,
 }
@@ -53,6 +55,42 @@ const Invest = () => {
   const symbol = currencies[currency].symbol
   const remaining = MONTHLY_BUDGET - SPENT
   const progressPct = Math.min(1, SPENT / MONTHLY_BUDGET) * 100
+  // state populated from backend when available
+  const [expenses, setExpenses] = useState(FALLBACK_EXPENSES)
+  const [investments, setInvestments] = useState(FALLBACK_INVESTMENTS)
+  const [currencyMap, setCurrencyMap] = useState<typeof FALLBACK_CURRENCIES>(FALLBACK_CURRENCIES)
+
+  // fetch backend data on mount (inside component so setState is available)
+  useEffect(() => {
+    let mounted = true
+
+    fetch(api('/api/expenses'))
+      .then(r => r.json())
+      .then(list => {
+        if (!mounted) return
+        if (Array.isArray(list) && list.length) setExpenses(list)
+      })
+      .catch(() => console.warn('No /api/expenses available - using fallback'));
+
+  
+    fetch(api('/api/investments'))
+      .then((r) => r.json()) 
+      .then(list => {
+        if (!mounted) return
+        if (Array.isArray(list) && list.length) setInvestments(list)
+      })
+      .catch(() => console.warn('No /api/investments available - using fallback'));
+
+    fetch(api('/api/currencies'))
+      .then(r => r.json())
+      .then(map => {
+        if (!mounted) return
+        if (map && typeof map === 'object') setCurrencyMap(map)
+      })
+      .catch(() => console.warn('No /api/currencies available - using fallback'));
+
+    return () => { mounted = false }
+  }, [])
 
   return (
     <>
@@ -62,13 +100,13 @@ const Invest = () => {
         {/* Currency header (flag + selector) */}
         <View style={{ paddingVertical: 10, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <Image source={currencies[currency].flag} style={{ width: 30, height: 30 }} />
-            <Text style={{ color: Colors.white, fontSize: 16, fontWeight: 'bold' }}>{currencies[currency].label}</Text>
+            <Image source={currencyMap[currency].flag} style={{ width: 30, height: 30 }} />
+            <Text style={{ color: Colors.white, fontSize: 16, fontWeight: 'bold' }}>{currencyMap[currency].label}</Text>
           </View>
           <View style={{ flexDirection: 'row', marginLeft: 'auto', gap: 8 }}>
-            { (Object.keys(currencies) as (keyof typeof currencies)[]).map(k => (
+            { (Object.keys(currencyMap) as (keyof typeof currencyMap)[]).map(k => (
               <TouchableOpacity key={k} onPress={() => setCurrency(k)} style={{ padding: 6 }}>
-                <Image source={currencies[k].flag} style={{ width: 24, height: 24, opacity: currency === k ? 1 : 0.45 }} />
+                <Image source={currencyMap[k].flag} style={{ width: 24, height: 24, opacity: currency === k ? 1 : 0.45 }} />
               </TouchableOpacity>
             )) }
           </View>
@@ -146,7 +184,7 @@ const Invest = () => {
         {/* Investment options section */}
         <View style={styles.investSection}>
           <Text style={styles.sectionTitle}>Investment Options</Text>
-          {investmentOptions.map((opt) => (
+          {investments.map((opt) => (
             <View key={opt.id} style={styles.investCard}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.investTitle}>{opt.name}</Text>
@@ -163,14 +201,14 @@ const Invest = () => {
         <View style={styles.recent}>
           <Text style={styles.sectionTitle}>Recent Activity</Text>
 
-          {sampleExpenses.map((t) => {
+          {expenses.map((t) => {
             const isIncome = t.amount < 0
             return (
               <View key={t.id} style={styles.txRow}>
                 <Image source={require('@/assets/svgs/gtco.svg')} style={styles.txIcon} />
                 <View style={styles.txText}>
                   <Text style={styles.txTitle}>{t.title}</Text>
-                  <Text style={styles.txNote}>{t.note} • {t.time}</Text>
+                  <Text style={styles.txNote}>{t.note || t.category || ''} • {t.time}</Text>
                 </View>
                 <Text style={[styles.txAmount, isIncome ? styles.income : styles.expense]}>
                   {isIncome ? '+' : ''}{formatCurrency(Math.abs(t.amount), currency)}
