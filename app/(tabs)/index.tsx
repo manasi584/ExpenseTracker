@@ -217,13 +217,14 @@ const HomeScreen = () => {
       .then(([expensesList, budgetData, userData]) => {
         if (!mounted) return
         console.log('Expenses loaded:', expensesList)
-        if (Array.isArray(expensesList)) setExpenses(expensesList)
+        // Ensure expenses is always an array, even for new accounts
+        setExpenses(Array.isArray(expensesList) ? expensesList : [])
         if (budgetData) {
-          setBudget(budgetData.budget)
-          setSpent(budgetData.spent)
+          setBudget(budgetData.budget || 0)
+          setSpent(budgetData.spent || 0)
         }
         if (userData) {
-          setCardsOwned(userData.cards)
+          setCardsOwned(userData.cards || 0)
         }
         // Check for month-end summary after loading data
         checkMonthEndSummary()
