@@ -10,16 +10,21 @@ import {
     SafeAreaView,
     StyleSheet,
     Text,
+    TextInput,
     TouchableOpacity,
     View,
 } from 'react-native';
 import { api } from '@/constants/Backend';
 
 const App = () => {
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [passcode, setPasscode] = useState('');
   const [authenticated, setAuthenticated] = useState(false);
   const [loadingRedirect, setLoadingRedirect] = useState(false);
   const [userProfile, setUserProfile] = useState({ name: 'John Doe', email: 'johndoe@example.com' });
+  const [showPasscode, setShowPasscode] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const startFadeAnimation = () => {
@@ -39,7 +44,11 @@ const App = () => {
       setPasscode(newPasscode);
 
       if (newPasscode.length === 6) {
-        validatePasscode(newPasscode);
+        if (isRegistering) {
+          handleRegister(newPasscode);
+        } else {
+          validatePasscode(newPasscode);
+        }
       }
     }
   };
@@ -101,16 +110,66 @@ const App = () => {
     startFadeAnimation();
   };
 
+  const handleUsernameSubmit = () => {
+    if (!username.trim()) {
+      Alert.alert('Username Required', 'Please enter your username');
+      return;
+    }
+    if (isRegistering && !email.trim()) {
+      Alert.alert('Email Required', 'Please enter your email');
+      return;
+    }
+    setShowPasscode(true);
+    if (!isRegistering) {
+      fetch(api('/api/user'))
+        .then(r => r.json())
+        .then(userData => {
+          if (userData) {
+            setUserProfile(userData);
+          }
+        })
+        .catch(() => {});
+    }
+  };
+
+  const handleRegister = async (enteredPasscode) => {
+    try {
+      const response = await fetch(api('/api/user/register'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          name: username.trim(), 
+          email: email.trim(), 
+          passcode: enteredPasscode 
+        })
+      });
+      const result = await response.json();
+      if (response.ok) {
+        Alert.alert('Success', 'Account created successfully!');
+        setUserProfile({ name: username, email });
+        authenticateUser();
+      } else {
+        Alert.alert('Registration Failed', result.error);
+        setPasscode('');
+      }
+    } catch (err) {
+      Alert.alert('Registration Error', 'Could not create account');
+      setPasscode('');
+    }
+  };
+
   useEffect(() => {
-    fetch(api('/api/user'))
-      .then(r => r.json())
-      .then(userData => {
-        if (userData) {
-          setUserProfile(userData);
-        }
-      })
-      .catch(() => {});
-  }, []);
+    if (!showPasscode) {
+      fetch(api('/api/user'))
+        .then(r => r.json())
+        .then(userData => {
+          if (userData) {
+            setUserProfile(userData);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [showPasscode]);
 
   if (authenticated) return <Redirect href="/(tabs)" />;
 
@@ -126,24 +185,69 @@ const App = () => {
             source={require('@/assets/images/user.png')}
             style={styles.avatar}
           />
-          <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.name}>{userProfile.name}</Text>
+          <Text style={styles.title}>{showPasscode ? (isRegistering ? 'Create Account' : 'Welcome Back') : (isRegistering ? 'Register' : 'Login')}</Text>
+          {showPasscode && <Text style={styles.name}>{userProfile.name}</Text>}
 
-          <View style={styles.passcodeRow}>
-            <AntDesign name="lock" size={24} color="limegreen" />
-            <Text style={styles.passcodeText}>Passcode</Text>
-          </View>
+          {!showPasscode ? (
+            <>
+              <View style={styles.inputContainer}>
+                <AntDesign name="user" size={20} color="limegreen" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.usernameInput}
+                  placeholder="Enter username"
+                  placeholderTextColor="#666"
+                  value={username}
+                  onChangeText={setUsername}
+                  autoCapitalize="none"
+                />
+              </View>
+              {isRegistering && (
+                <View style={styles.inputContainer}>
+                  <AntDesign name="mail" size={20} color="limegreen" style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.usernameInput}
+                    placeholder="Enter email"
+                    placeholderTextColor="#666"
+                    value={email}
+                    onChangeText={setEmail}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                  />
+                </View>
+              )}
+              <TouchableOpacity style={styles.continueBtn} onPress={handleUsernameSubmit}>
+                <Text style={styles.continueBtnText}>Continue</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.switchBtn} onPress={() => setIsRegistering(!isRegistering)}>
+                <Text style={styles.switchBtnText}>
+                  {isRegistering ? 'Already have an account? Login' : 'New user? Register'}
+                </Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              <View style={styles.passcodeRow}>
+                <AntDesign name="lock" size={24} color="limegreen" />
+                <Text style={styles.passcodeText}>Passcode</Text>
+              </View>
 
-          <View style={styles.dots}>
-            {[...Array(6)].map((_, i) => (
-              <View
-                key={i}
-                style={[styles.dot, passcode.length > i && styles.filledDot]}
-              />
-            ))}
-          </View>
+              <View style={styles.dots}>
+                {[...Array(6)].map((_, i) => (
+                  <View
+                    key={i}
+                    style={[styles.dot, passcode.length > i && styles.filledDot]}
+                  />
+                ))}
+              </View>
 
-          <View style={styles.keypad}>
+              <TouchableOpacity style={styles.backBtn} onPress={() => { setShowPasscode(false); setPasscode(''); }}>
+                <Text style={styles.backBtnText}>← Back to {isRegistering ? 'Registration' : 'Username'}</Text>
+              </TouchableOpacity>
+            </>
+          )}
+
+          {showPasscode && (
+            <View style={styles.keypad}>
             {['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', ''].map(
               (key, i) => {
                 if (key === '') {
@@ -179,7 +283,8 @@ const App = () => {
                 );
               }
             )}
-          </View>
+            </View>
+          )}
         </>
       )}
     </SafeAreaView>
@@ -271,6 +376,53 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: 'white',
     fontWeight: '600',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#222',
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    marginVertical: 20,
+    width: 280,
+  },
+  inputIcon: {
+    marginRight: 10,
+  },
+  usernameInput: {
+    flex: 1,
+    color: '#fff',
+    fontSize: 16,
+    paddingVertical: 15,
+  },
+  continueBtn: {
+    backgroundColor: 'limegreen',
+    paddingHorizontal: 40,
+    paddingVertical: 12,
+    borderRadius: 25,
+    marginTop: 10,
+  },
+  continueBtnText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  backBtn: {
+    marginTop: 10,
+    padding: 10,
+  },
+  backBtnText: {
+    color: 'limegreen',
+    fontSize: 14,
+  },
+  switchBtn: {
+    marginTop: 15,
+    padding: 10,
+  },
+  switchBtnText: {
+    color: '#ccc',
+    fontSize: 14,
+    textAlign: 'center',
   },
 });
 

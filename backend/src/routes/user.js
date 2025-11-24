@@ -33,4 +33,24 @@ router.post('/validate-passcode', async (req, res) => {
   }
 });
 
+// POST /api/user/register
+router.post('/register', async (req, res) => {
+  try {
+    const { name, email, passcode } = req.body;
+    if (!name || !email || !passcode) {
+      return res.status(400).json({ error: 'Name, email and passcode are required' });
+    }
+    
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ error: 'User already exists' });
+    }
+    
+    const user = await User.create({ name, email, passcode, budget: 20000, cards: 1 });
+    res.status(201).json({ message: 'User registered successfully', user });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to register user' });
+  }
+});
+
 module.exports = router;

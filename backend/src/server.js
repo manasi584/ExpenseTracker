@@ -9,6 +9,8 @@ require('./db');
 const expensesRouter = require('./routes/expenses');
 const budgetRouter = require('./routes/budget');
 const userRouter = require('./routes/user');
+const investmentsRouter = require('./routes/investments');
+const cardsRouter = require('./routes/cards');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -24,6 +26,8 @@ app.get('/', (req, res) => res.json({ ok: true, env: process.env.NODE_ENV || 'de
 app.use('/api/expenses', expensesRouter);
 app.use('/api/budget', budgetRouter);
 app.use('/api/user', userRouter);
+app.use('/api/investments', investmentsRouter);
+app.use('/api/cards', cardsRouter);
 
 // fallback
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));

@@ -1,19 +1,45 @@
 import { Colors } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
-import { FlatList, Image, Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useState, useEffect } from "react";
+import { ActivityIndicator, FlatList, Image, Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { api } from "@/constants/Backend";
 
 const Header = () => {
-  const [showTransactions, setShowTransactions] = React.useState(false);
+  const [showTransactions, setShowTransactions] = useState(false);
+  const [topTransactions, setTopTransactions] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const lastTransactions = [
-    { id: 't1', title: 'Grocery Store', date: '08/12/2025', time: '4:06 PM', amount: -1500 },
-    { id: 't2', title: 'Taxi', date: '08/12/2025', time: '10:15 AM', amount: -500 },
-    { id: 't3', title: 'Salary', date: '08/11/2025', time: '8:05 AM', amount: 2000 },
-    { id: 't4', title: 'Coffee', date: '08/10/2025', time: '9:30 AM', amount: -200 },
-    { id: 't5', title: 'Utility Bill', date: '08/09/2025', time: '6:20 PM', amount: -1200 },
-  ];
+  const fetchTopTransactions = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(api('/api/expenses'));
+      const expenses = await response.json();
+      if (Array.isArray(expenses)) {
+        // Sort by absolute amount (highest first) and take top 5
+        const sorted = expenses
+          .sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount))
+          .slice(0, 5)
+          .map(expense => ({
+            id: expense._id || expense.id,
+            title: expense.title,
+            date: new Date(expense.createdAt || expense.time).toLocaleDateString(),
+            time: new Date(expense.createdAt || expense.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            amount: expense.amount
+          }));
+        setTopTransactions(sorted);
+      }
+    } catch (err) {
+      console.warn('Failed to fetch top transactions', err);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (showTransactions) {
+      fetchTopTransactions();
+    }
+  }, [showTransactions]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -47,28 +73,39 @@ const Header = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Last 5 Transactions</Text>
+              <Text style={styles.modalTitle}>Top 5 Transactions</Text>
               <TouchableOpacity onPress={() => setShowTransactions(false)} style={{ padding: 6 }}>
                 <Ionicons name="close" size={22} color={Colors.white} />
               </TouchableOpacity>
             </View>
 
-            <FlatList
-              data={lastTransactions}
-              keyExtractor={(i) => i.id}
-              showsVerticalScrollIndicator={false}
-              renderItem={({ item }) => (
-                <View style={styles.txRow}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.txTitle}>{item.title}</Text>
-                    <Text style={styles.txMeta}>{item.date} • {item.time}</Text>
+            {loading ? (
+              <View style={{ alignItems: 'center', paddingVertical: 20 }}>
+                <ActivityIndicator size="large" color={Colors.white} />
+                <Text style={{ color: Colors.gray, marginTop: 8 }}>Loading transactions...</Text>
+              </View>
+            ) : topTransactions.length === 0 ? (
+              <View style={{ alignItems: 'center', paddingVertical: 20 }}>
+                <Text style={{ color: Colors.gray }}>No transactions found</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={topTransactions}
+                keyExtractor={(i) => i.id}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <View style={styles.txRow}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.txTitle}>{item.title}</Text>
+                      <Text style={styles.txMeta}>{item.date} • {item.time}</Text>
+                    </View>
+                    <Text style={[styles.txAmount, item.amount > 0 ? styles.income : styles.outcome]}>
+                      {item.amount > 0 ? '+' : '₹'}{Math.abs(item.amount).toLocaleString()}
+                    </Text>
                   </View>
-                  <Text style={[styles.txAmount, item.amount > 0 ? styles.income : styles.outcome]}>
-                    {item.amount > 0 ? '+' : '₹'}{Math.abs(item.amount).toLocaleString()}
-                  </Text>
-                </View>
-              )}
-            />
+                )}
+              />
+            )}
           </View>
         </View>
       </Modal>

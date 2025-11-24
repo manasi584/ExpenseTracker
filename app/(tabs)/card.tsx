@@ -2,8 +2,9 @@ import CardHeader from "@/components/CardHeader";
 import { Colors } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { api } from "@/constants/Backend";
 
 const perks = [
 	{
@@ -29,13 +30,42 @@ const perks = [
 ];
 
 const Page = () => {
-	const handleGetCard = () => {
-		// placeholder - hook this to real request flow
-		Alert.alert(
-			"Card Requested",
-			"Thank you — we will process your Benefits Card request and notify you."
-		);
+	const [cardStatus, setCardStatus] = useState(null);
+	const [loading, setLoading] = useState(false);
+
+	const handleGetCard = async () => {
+		setLoading(true);
+		try {
+			const response = await fetch(api('/api/cards/request'), {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' }
+			});
+			const result = await response.json();
+			if (response.ok) {
+				Alert.alert('Success', 'Card request submitted successfully!');
+				fetchCardStatus();
+			} else {
+				Alert.alert('Request Failed', result.error);
+			}
+		} catch (err) {
+			Alert.alert('Error', 'Could not submit card request');
+		}
+		setLoading(false);
 	};
+
+	const fetchCardStatus = async () => {
+		try {
+			const response = await fetch(api('/api/cards/status'));
+			const result = await response.json();
+			setCardStatus(result);
+		} catch (err) {
+			console.warn('Failed to fetch card status', err);
+		}
+	};
+
+	useEffect(() => {
+		fetchCardStatus();
+	}, []);
 
 	const handleLearnMore = () => {
 		Alert.alert(
@@ -61,11 +91,14 @@ const Page = () => {
 
 					<View style={styles.ctaRow}>
 						<TouchableOpacity
-							style={styles.primaryBtn}
+							style={[styles.primaryBtn, (cardStatus?.hasRequest || loading) && styles.disabledBtn]}
 							onPress={handleGetCard}
+							disabled={cardStatus?.hasRequest || loading}
 						>
 							<Ionicons name="card" size={18} color={Colors.white} />
-							<Text style={styles.primaryText}>Get Card</Text>
+							<Text style={styles.primaryText}>
+								{loading ? 'Submitting...' : cardStatus?.hasRequest ? `Request ${cardStatus.status}` : 'Get Card'}
+							</Text>
 						</TouchableOpacity>
 
 						<TouchableOpacity
@@ -222,5 +255,8 @@ const styles = StyleSheet.create({
 		color: Colors.gray,
 		fontSize: 13,
 		textAlign: "center",
+	},
+	disabledBtn: {
+		opacity: 0.6,
 	},
 });
