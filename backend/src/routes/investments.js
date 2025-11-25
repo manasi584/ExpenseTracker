@@ -86,4 +86,50 @@ router.get('/recurring', async (req, res) => {
   }
 });
 
+// GET /api/investments/recent - Combined recent investments
+router.get('/recent', async (req, res) => {
+  try {
+    const user = await User.findOne();
+    if (!user) {
+      return res.json([]);
+    }
+    
+    const [investments, recurringInvestments] = await Promise.all([
+      Investment.find({ userId: user._id }).sort({ createdAt: -1 }).limit(10),
+      RecurringInvestment.find({ userId: user._id }).sort({ createdAt: -1 })
+    ]);
+    
+    const recentInvestments = [];
+    
+    // Add regular investments
+    investments.forEach(inv => {
+      recentInvestments.push({
+        id: inv._id,
+        name: inv.name,
+        amount: inv.value,
+        date: inv.createdAt.toISOString().split('T')[0],
+        profit: Math.floor(Math.random() * 500) - 100 // Mock profit calculation
+      });
+    });
+    
+    // Add recurring investments
+    recurringInvestments.forEach(recurring => {
+      recentInvestments.push({
+        id: `recurring-${recurring._id}`,
+        name: `${recurring.investmentType} (Auto)`,
+        amount: recurring.amount,
+        date: recurring.startDate.toISOString().split('T')[0],
+        profit: 0
+      });
+    });
+    
+    // Sort by date (newest first)
+    recentInvestments.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    res.json(recentInvestments.slice(0, 10));
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch recent investments' });
+  }
+});
+
 module.exports = router;

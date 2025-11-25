@@ -65,6 +65,42 @@ const Invest = () => {
     }
   }
 
+  const fetchRecentInvestments = async () => {
+    try {
+      const [investmentsResponse, expensesResponse] = await Promise.all([
+        fetch(api('/api/investments/recent')),
+        fetch(api('/api/expenses'))
+      ])
+      
+      const investmentsData = await investmentsResponse.json()
+      const expensesData = await expensesResponse.json()
+      
+      const allInvestments = []
+      
+      if (Array.isArray(investmentsData)) {
+        allInvestments.push(...investmentsData)
+      }
+      
+      if (Array.isArray(expensesData)) {
+        const investmentExpenses = expensesData
+          .filter(expense => expense.category === 'Investment' && expense.amount < 0)
+          .map(expense => ({
+            id: `expense-${expense._id}`,
+            name: expense.title,
+            amount: Math.abs(expense.amount),
+            date: expense.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+            profit: 0
+          }))
+        allInvestments.push(...investmentExpenses)
+      }
+      
+      allInvestments.sort((a, b) => new Date(b.date) - new Date(a.date))
+      setRecentInvestments(allInvestments.slice(0, 10))
+    } catch (error) {
+      console.warn('Failed to fetch recent investments:', error)
+    }
+  }
+
   const handleCreateRecurring = async () => {
     if (!recurringForm.amount || !recurringForm.investmentType) {
       Alert.alert('Error', 'Please fill in amount and investment type')
@@ -89,6 +125,8 @@ const Invest = () => {
         Alert.alert('Success', 'Recurring investment created successfully')
         setShowRecurringModal(false)
         setRecurringForm({ amount: '', frequency: 'monthly', startDate: new Date().toISOString().split('T')[0], endDate: '', investmentType: '' })
+        // Refresh recent investments
+        fetchRecentInvestments()
       } else {
         Alert.alert('Error', 'Failed to create recurring investment')
       }
@@ -101,6 +139,8 @@ const Invest = () => {
   const [expenses, setExpenses] = useState(FALLBACK_EXPENSES)
   const [investments, setInvestments] = useState(FALLBACK_INVESTMENTS)
   const [showRecurringModal, setShowRecurringModal] = useState(false)
+  const [showAddInvestmentModal, setShowAddInvestmentModal] = useState(false)
+  const [addInvestmentForm, setAddInvestmentForm] = useState({ title: '', amount: '' })
   const [isInvestmentOptionsExpanded, setIsInvestmentOptionsExpanded] = useState(false)
   const [recurringForm, setRecurringForm] = useState({
     amount: '',
@@ -125,13 +165,40 @@ const Invest = () => {
     { value: 2800, label: 'Nov' },
     { value: 5000, label: 'Dec' },
   ])
-  const [recentInvestments, setRecentInvestments] = useState([
-    { id: '1', name: 'Index Fund', amount: 5000, date: '2024-01-15', profit: 250 },
-    { id: '2', name: 'Corporate Bonds', amount: 3000, date: '2024-01-10', profit: -50 },
-  ])
+  const [recentInvestments, setRecentInvestments] = useState([])
 
   const handleAddInvestment = () => {
-    Alert.alert('Add Investment', 'Feature coming soon!')
+    setShowAddInvestmentModal(true)
+  }
+
+  const handleCreateInvestment = async () => {
+    if (!addInvestmentForm.title || !addInvestmentForm.amount) {
+      Alert.alert('Error', 'Please fill in title and amount')
+      return
+    }
+
+    try {
+      const response = await fetch(api('/api/expenses'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: addInvestmentForm.title,
+          category: 'Investment',
+          amount: -Math.abs(parseFloat(addInvestmentForm.amount))
+        })
+      })
+      
+      if (response.ok) {
+        Alert.alert('Success', 'Investment added successfully')
+        setShowAddInvestmentModal(false)
+        setAddInvestmentForm({ title: '', amount: '' })
+        fetchRecentInvestments()
+      } else {
+        Alert.alert('Error', 'Failed to add investment')
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to add investment')
+    }
   }
 
   const handleCalculateProfits = () => {
@@ -184,6 +251,9 @@ const Invest = () => {
       })
       .catch(() => console.warn('No /api/expense-chart available - using fallback'));
 
+    
+    fetchRecentInvestments()
+
     return () => { mounted = false }
   }, [])
 
@@ -219,7 +289,7 @@ const Invest = () => {
               backgroundColor={Colors.black}
             />
           </View>
-          <Text style={styles.chartSubtitle}>Last 6 months • No investments yet</Text>
+          <Text style={styles.chartSubtitle}>Last 6 months </Text>
         </View>
 
         {/* Auto Investment Button */}
@@ -329,6 +399,41 @@ const Invest = () => {
               </TouchableOpacity>
               <TouchableOpacity style={styles.createBtn} onPress={handleCreateRecurring}>
                 <Text style={styles.createText}>Create</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Add Investment Modal */}
+      <Modal visible={showAddInvestmentModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Add Investment</Text>
+            
+            <TextInput
+              style={styles.input}
+              placeholder="Investment Title"
+              placeholderTextColor={Colors.gray}
+              value={addInvestmentForm.title}
+              onChangeText={(text) => setAddInvestmentForm({...addInvestmentForm, title: text})}
+            />
+            
+            <TextInput
+              style={styles.input}
+              placeholder="Amount"
+              placeholderTextColor={Colors.gray}
+              value={addInvestmentForm.amount}
+              onChangeText={(text) => setAddInvestmentForm({...addInvestmentForm, amount: text})}
+              keyboardType="numeric"
+            />
+            
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={styles.cancelBtn} onPress={() => setShowAddInvestmentModal(false)}>
+                <Text style={styles.cancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.createBtn} onPress={handleCreateInvestment}>
+                <Text style={styles.createText}>Add</Text>
               </TouchableOpacity>
             </View>
           </View>

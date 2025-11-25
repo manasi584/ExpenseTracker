@@ -25,8 +25,8 @@ const sampleInvestments = [
 // Exchange rates (static) — base currency is INR
 const exchangeRates: Record<string, number> = {
   INR: 1,
-  USD: 0.012, // 1 INR -> 0.012 USD (example)
-  CNY: 0.085, // 1 INR -> 0.085 CNY (example)
+  USD: 0.012, 
+  CNY: 0.085, 
 }
 
 // Convert from INR -> target currency
