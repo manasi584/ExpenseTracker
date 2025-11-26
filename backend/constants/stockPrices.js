@@ -48,7 +48,7 @@ const STOCK_PRICES = {
 // Gold rate in INR per gram
 const GOLD_RATE = 12677;
 
-const DEFAULT_STOCK_PRICE = 10000;
+const DEFAULT_STOCK_PRICE = 20000;
 
 // Get current gold price with fluctuation
 const getCurrentGoldPrice = () => {
