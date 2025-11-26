@@ -8,6 +8,8 @@ const { STOCK_PRICES, DEFAULT_STOCK_PRICE, getCurrentGoldPrice, GOLD_RATE } = re
 const router = express.Router();
 router.use(requestLogger);
 
+const USD_TO_INR = 84; // Current exchange rate
+
 // Real stock price API using Alpha Vantage with error handling
 const getStockPrice = async (symbol) => {
   try {
@@ -24,7 +26,8 @@ const getStockPrice = async (symbol) => {
     }
     
     if (data['Global Quote'] && data['Global Quote']['05. price']) {
-      return parseFloat(data['Global Quote']['05. price']);
+      const usdPrice = parseFloat(data['Global Quote']['05. price']);
+      return usdPrice * USD_TO_INR; // Convert USD to INR
     }
     
     console.warn(`No price data returned for ${symbol}`);
@@ -54,7 +57,7 @@ router.get('/', async (req, res) => {
           currentPrice = getCurrentGoldPrice();
         } else {
           const newPrice = await getStockPrice(stock.symbol);
-          currentPrice = newPrice || stock.currentPrice || STOCK_PRICES[stock.symbol] || DEFAULT_STOCK_PRICE;
+          currentPrice = newPrice || stock.currentPrice || STOCK_PRICES[stock.symbol];
           
           if (newPrice) {
             stock.currentPrice = currentPrice;
@@ -105,7 +108,7 @@ router.post('/', async (req, res) => {
       currentPrice = getCurrentGoldPrice();
     } else {
       const fetchedPrice = await getStockPrice(symbol.toUpperCase());
-      currentPrice = fetchedPrice || STOCK_PRICES[symbol.toUpperCase()] || DEFAULT_STOCK_PRICE;
+      currentPrice = fetchedPrice || STOCK_PRICES[symbol.toUpperCase()];
     }
     
     const stock = await Stock.create({
@@ -217,7 +220,7 @@ router.get('/portfolio-summary', async (req, res) => {
         currentPrice = getCurrentGoldPrice();
       } else {
         const newPrice = await getStockPrice(stock.symbol);
-        currentPrice = newPrice || stock.currentPrice || STOCK_PRICES[stock.symbol] || DEFAULT_STOCK_PRICE;
+        currentPrice = newPrice || stock.currentPrice || STOCK_PRICES[stock.symbol];
         
         if (newPrice) {
           stock.currentPrice = currentPrice;
