@@ -3,7 +3,7 @@ import { Colors } from '@/constants/Colors'
 import { Ionicons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import React, { useState, useEffect } from 'react'
-import { StyleSheet, Text, TouchableOpacity, View, Modal, TextInput, Alert } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View, Modal, TextInput, Alert, ScrollView, RefreshControl } from 'react-native'
 import { api } from '@/constants/Backend'
 import * as WebBrowser from 'expo-web-browser'
 import { LineChart } from 'react-native-gifted-charts'
@@ -166,6 +166,11 @@ const Invest = () => {
     { value: 5000, label: 'Dec' },
   ])
   const [recentInvestments, setRecentInvestments] = useState([])
+  const [stocks, setStocks] = useState([])
+  const [portfolioSummary, setPortfolioSummary] = useState({ totalValue: 0, totalCost: 0, totalProfit: 0, profitPercentage: 0 })
+  const [showAddStockModal, setShowAddStockModal] = useState(false)
+  const [addStockForm, setAddStockForm] = useState({ symbol: '', name: '', quantity: '', purchasePrice: '' })
+  const [refreshing, setRefreshing] = useState(false)
 
   const handleAddInvestment = () => {
     setShowAddInvestmentModal(true)
@@ -202,8 +207,106 @@ const Invest = () => {
   }
 
   const handleCalculateProfits = () => {
-    const totalProfit = recentInvestments.reduce((sum, inv) => sum + inv.profit, 0)
-    Alert.alert('Total Profits', `Your total profit/loss: ${formatCurrency(totalProfit, currency, currencyMap)}`)
+    const investmentProfit = recentInvestments.reduce((sum, inv) => sum + inv.profit, 0)
+    const stockProfit = portfolioSummary.totalProfit
+    const totalProfit = investmentProfit + stockProfit
+    Alert.alert('Total Portfolio Performance', 
+      `Investment Profit: ${formatCurrency(investmentProfit, currency, currencyMap)}\n` +
+      `Stock Profit: ${formatCurrency(stockProfit, currency, currencyMap)}\n` +
+      `Total Profit/Loss: ${formatCurrency(totalProfit, currency, currencyMap)}`
+    )
+  }
+
+  const fetchStocks = async () => {
+    try {
+      const response = await fetch(api('/api/stocks'))
+      const stocksData = await response.json()
+      setStocks(Array.isArray(stocksData) ? stocksData : [])
+    } catch (error) {
+      console.warn('Failed to fetch stocks:', error)
+    }
+  }
+
+  const fetchPortfolioSummary = async () => {
+    try {
+      const response = await fetch(api('/api/stocks/portfolio-summary'))
+      const summaryData = await response.json()
+      setPortfolioSummary(summaryData)
+    } catch (error) {
+      console.warn('Failed to fetch portfolio summary:', error)
+    }
+  }
+
+  const handleAddStock = async () => {
+    if (!addStockForm.symbol || !addStockForm.name || !addStockForm.quantity || !addStockForm.purchasePrice) {
+      Alert.alert('Error', 'Please fill in all fields')
+      return
+    }
+
+    try {
+      const response = await fetch(api('/api/stocks'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          symbol: addStockForm.symbol.toUpperCase(),
+          name: addStockForm.name,
+          quantity: parseFloat(addStockForm.quantity),
+          purchasePrice: parseFloat(addStockForm.purchasePrice)
+        })
+      })
+      
+      if (response.ok) {
+        Alert.alert('Success', 'Stock added successfully')
+        setShowAddStockModal(false)
+        setAddStockForm({ symbol: '', name: '', quantity: '', purchasePrice: '' })
+        fetchStocks()
+        fetchPortfolioSummary()
+      } else {
+        Alert.alert('Error', 'Failed to add stock')
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to add stock')
+    }
+  }
+
+  const handleRemoveStock = async (stockId) => {
+    Alert.alert(
+      'Remove Stock',
+      'Are you sure you want to remove this stock?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const response = await fetch(api(`/api/stocks/${stockId}`), {
+                method: 'DELETE'
+              })
+              
+              if (response.ok) {
+                fetchStocks()
+                fetchPortfolioSummary()
+              } else {
+                Alert.alert('Error', 'Failed to remove stock')
+              }
+            } catch (error) {
+              Alert.alert('Error', 'Failed to remove stock')
+            }
+          }
+        }
+      ]
+    )
+  }
+
+  const onRefresh = async () => {
+    setRefreshing(true)
+    await Promise.all([
+      fetchStocks(),
+      fetchPortfolioSummary(),
+      fetchRecentInvestments()
+    ])
+    setRefreshing(false)
   }
 
   // fetch backend data on mount (inside component so setState is available)
@@ -253,6 +356,8 @@ const Invest = () => {
 
     
     fetchRecentInvestments()
+    fetchStocks()
+    fetchPortfolioSummary()
 
     return () => { mounted = false }
   }, [])
@@ -261,7 +366,12 @@ const Invest = () => {
     <>
       <InvestHeader />
 
-      <View style={styles.container}>
+      <ScrollView 
+        style={styles.container}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.tintColor} />
+        }
+      >
         {/* Investment Chart */}
         <View style={styles.chartSection}>
           <Text style={styles.sectionTitle}>Investment Performance</Text>
@@ -324,13 +434,69 @@ const Invest = () => {
           ))}
         </View>
 
+        {/* Portfolio Summary */}
+        <View style={styles.portfolioSummary}>
+          <Text style={styles.sectionTitle}>Stock Portfolio</Text>
+          <View style={styles.summaryRow}>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryLabel}>Total Value</Text>
+              <Text style={styles.summaryValue}>{formatCurrency(portfolioSummary.totalValue, currency, currencyMap)}</Text>
+            </View>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryLabel}>Total Profit</Text>
+              <Text style={[styles.summaryValue, portfolioSummary.totalProfit >= 0 ? styles.profit : styles.loss]}>
+                {portfolioSummary.totalProfit >= 0 ? '+' : ''}{formatCurrency(portfolioSummary.totalProfit, currency, currencyMap)}
+              </Text>
+            </View>
+          </View>
+          <Text style={styles.profitPercentage}>
+            {portfolioSummary.profitPercentage >= 0 ? '+' : ''}{portfolioSummary.profitPercentage}% overall return
+          </Text>
+        </View>
+
+        {/* Stock Holdings */}
+        <View style={styles.stockHoldings}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>My Stocks</Text>
+            <TouchableOpacity onPress={() => setShowAddStockModal(true)}>
+              <Ionicons name="add-circle" size={24} color={Colors.tintColor} />
+            </TouchableOpacity>
+          </View>
+          {stocks.map((stock) => {
+            const isProfit = stock.profit >= 0
+            return (
+              <View key={stock._id} style={styles.stockCard}>
+                <View style={styles.stockInfo}>
+                  <Text style={styles.stockSymbol}>{stock.symbol}</Text>
+                  <Text style={styles.stockName}>{stock.name}</Text>
+                  <Text style={styles.stockDetails}>
+                    {stock.quantity} shares @ {formatCurrency(stock.purchasePrice, currency, currencyMap)}
+                  </Text>
+                </View>
+                <View style={styles.stockValues}>
+                  <Text style={styles.currentPrice}>{formatCurrency(stock.currentPrice, currency, currencyMap)}</Text>
+                  <Text style={[styles.stockProfit, isProfit ? styles.profit : styles.loss]}>
+                    {isProfit ? '+' : ''}{formatCurrency(stock.profit, currency, currencyMap)} ({stock.profitPercentage}%)
+                  </Text>
+                  <TouchableOpacity onPress={() => handleRemoveStock(stock._id)} style={styles.removeBtn}>
+                    <Ionicons name="trash-outline" size={16} color={Colors.gray} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )
+          })}
+          {stocks.length === 0 && (
+            <Text style={styles.emptyText}>No stocks added yet. Tap + to add your first stock!</Text>
+          )}
+        </View>
+
         {/* Investment Actions */}
         <View style={styles.investActions}>
           <TouchableOpacity style={styles.actionBtn} onPress={handleAddInvestment}>
             <Text style={styles.actionBtnText}>+ Add Investment</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn} onPress={handleCalculateProfits}>
-            <Text style={styles.actionBtnText}>Calculate Profits</Text>
+            <Text style={styles.actionBtnText}>Portfolio Summary</Text>
           </TouchableOpacity>
         </View>
 
@@ -352,7 +518,7 @@ const Invest = () => {
             )
           })}
         </View>
-      </View>
+      </ScrollView>
 
       {/* Recurring Investment Modal */}
       <Modal visible={showRecurringModal} transparent animationType="slide">
@@ -434,6 +600,59 @@ const Invest = () => {
               </TouchableOpacity>
               <TouchableOpacity style={styles.createBtn} onPress={handleCreateInvestment}>
                 <Text style={styles.createText}>Add</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Add Stock Modal */}
+      <Modal visible={showAddStockModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Add Stock</Text>
+            
+            <TextInput
+              style={styles.input}
+              placeholder="Stock Symbol (e.g., AAPL)"
+              placeholderTextColor={Colors.gray}
+              value={addStockForm.symbol}
+              onChangeText={(text) => setAddStockForm({...addStockForm, symbol: text.toUpperCase()})}
+              autoCapitalize="characters"
+            />
+            
+            <TextInput
+              style={styles.input}
+              placeholder="Company Name"
+              placeholderTextColor={Colors.gray}
+              value={addStockForm.name}
+              onChangeText={(text) => setAddStockForm({...addStockForm, name: text})}
+            />
+            
+            <TextInput
+              style={styles.input}
+              placeholder="Quantity"
+              placeholderTextColor={Colors.gray}
+              value={addStockForm.quantity}
+              onChangeText={(text) => setAddStockForm({...addStockForm, quantity: text})}
+              keyboardType="numeric"
+            />
+            
+            <TextInput
+              style={styles.input}
+              placeholder="Purchase Price per Share"
+              placeholderTextColor={Colors.gray}
+              value={addStockForm.purchasePrice}
+              onChangeText={(text) => setAddStockForm({...addStockForm, purchasePrice: text})}
+              keyboardType="numeric"
+            />
+            
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={styles.cancelBtn} onPress={() => setShowAddStockModal(false)}>
+                <Text style={styles.cancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.createBtn} onPress={handleAddStock}>
+                <Text style={styles.createText}>Add Stock</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -689,5 +908,94 @@ const styles = StyleSheet.create({
   },
   loss: {
     color: '#ff6b6b',
+  },
+  portfolioSummary: {
+    backgroundColor: '#0d1417',
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 12,
+  },
+  summaryItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  summaryLabel: {
+    color: Colors.gray,
+    fontSize: 12,
+    marginBottom: 4,
+  },
+  summaryValue: {
+    color: Colors.white,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  profitPercentage: {
+    color: Colors.gray,
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  stockHoldings: {
+    marginTop: 10,
+    marginBottom: 20,
+  },
+  stockCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0d1417',
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  stockInfo: {
+    flex: 1,
+  },
+  stockSymbol: {
+    color: Colors.white,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  stockName: {
+    color: Colors.gray,
+    fontSize: 13,
+    marginTop: 2,
+  },
+  stockDetails: {
+    color: Colors.gray,
+    fontSize: 12,
+    marginTop: 4,
+  },
+  stockValues: {
+    alignItems: 'flex-end',
+    position: 'relative',
+  },
+  currentPrice: {
+    color: Colors.white,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  stockProfit: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  removeBtn: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    padding: 4,
+  },
+  emptyText: {
+    color: Colors.gray,
+    fontSize: 14,
+    textAlign: 'center',
+    fontStyle: 'italic',
+    marginTop: 20,
   },
 })
