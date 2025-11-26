@@ -80,9 +80,49 @@ const EnvelopeBudgeting = () => {
     try {
       const response = await fetch(api('/api/summary/history'))
       const data = await response.json()
-      setMonthlyHistory(data)
+      
+      // Add sample data for Oct and Sep if no data exists
+      if (data.length === 0) {
+        const sampleData = [
+          {
+            year: 2024,
+            month: 10,
+            totalBudget: 25000,
+            totalSpent: 18500,
+            totalInvestments: 0
+          },
+          {
+            year: 2024,
+            month: 9,
+            totalBudget: 22000,
+            totalSpent: 19800,
+            totalInvestments: 0
+          }
+        ]
+        setMonthlyHistory(sampleData)
+      } else {
+        setMonthlyHistory(data)
+      }
     } catch (error) {
       console.warn('Failed to fetch monthly history:', error)
+      // Fallback to sample data
+      const sampleData = [
+        {
+          year: 2024,
+          month: 10,
+          totalBudget: 25000,
+          totalSpent: 18500,
+          totalInvestments: 0
+        },
+        {
+          year: 2024,
+          month: 9,
+          totalBudget: 22000,
+          totalSpent: 19800,
+          totalInvestments: 0
+        }
+      ]
+      setMonthlyHistory(sampleData)
     }
   }
 
@@ -254,6 +294,11 @@ const EnvelopeBudgeting = () => {
                     <View style={styles.historyRow}>
                       <Text style={styles.historyLabel}>Saved:</Text>
                       <Text style={[styles.historyValue, { color: Colors.green }]}>₹{(summary.totalBudget - summary.totalSpent).toLocaleString()}</Text>
+                    </View>
+
+                    <View style={styles.historyRow}>
+                      <Text style={styles.historyLabel}>Investments:</Text>
+                      <Text style={[styles.historyValue, { color: Colors.tintColor }]}>₹{(summary.totalInvestments || 0).toLocaleString()}</Text>
                     </View>
                   </View>
                 ))

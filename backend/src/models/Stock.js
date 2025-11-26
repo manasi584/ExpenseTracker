@@ -6,6 +6,7 @@ const stockSchema = new mongoose.Schema({
   quantity: { type: Number, required: true, min: 0 },
   purchasePrice: { type: Number, required: true, min: 0 },
   currentPrice: { type: Number, default: 0 },
+  investmentType: { type: String, default: 'Stock', trim: true },
   lastUpdated: { type: Date, default: Date.now },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
 }, { timestamps: true });

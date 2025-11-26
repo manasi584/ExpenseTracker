@@ -45,16 +45,22 @@ const STOCK_PRICES = {
   'DOCU': 6060
 };
 
+// Gold rate in INR per gram
+const GOLD_RATE = 12677;
 
-const DEFAULT_STOCK_PRICE = 100;
+const DEFAULT_STOCK_PRICE = 10000;
+
+// Get current gold price with fluctuation
+const getCurrentGoldPrice = () => {
+  const fluctuation = Math.sin(Date.now() / 86400000) * 0.05; // ±5% daily fluctuation
+  return GOLD_RATE * (1 + fluctuation);
+};
 
 // Investment profit calculation based on time held and type
 const calculateInvestmentProfit = (amount, investmentType, daysHeld) => {
   if (investmentType === 'Gold') {
-    // Gold price fluctuation simulation (₹6,800 per gram base price)
-    const baseGoldPrice = 6800;
-    const currentGoldPrice = baseGoldPrice * (1 + Math.sin(Date.now() / 86400000) * 0.05); // ±5% daily fluctuation
-    const goldProfit = (amount / baseGoldPrice) * (currentGoldPrice - baseGoldPrice);
+    const currentGoldPrice = getCurrentGoldPrice();
+    const goldProfit = (amount / GOLD_RATE) * (currentGoldPrice - GOLD_RATE);
     return goldProfit;
   }
   
@@ -79,5 +85,7 @@ const calculateInvestmentProfit = (amount, investmentType, daysHeld) => {
 module.exports = {
   STOCK_PRICES,
   DEFAULT_STOCK_PRICE,
+  GOLD_RATE,
+  getCurrentGoldPrice,
   calculateInvestmentProfit
 };

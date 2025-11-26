@@ -102,33 +102,57 @@ const Invest = () => {
   }
 
   const handleCreateRecurring = async () => {
-    if (!recurringForm.amount || !recurringForm.investmentType) {
-      Alert.alert('Error', 'Please fill in amount and investment type')
+    // Enhanced validation with detailed logging
+    console.log('Form validation - recurringForm:', recurringForm)
+    
+    if (!recurringForm.amount || recurringForm.amount.trim() === '') {
+      Alert.alert('Error', 'Please enter an amount')
+      return
+    }
+    
+    if (!recurringForm.investmentType || recurringForm.investmentType.trim() === '') {
+      Alert.alert('Error', 'Please select an investment type')
+      return
+    }
+    
+    if (!recurringForm.startDate || recurringForm.startDate.trim() === '') {
+      Alert.alert('Error', 'Please enter a start date')
       return
     }
 
     try {
+      const payload = {
+        amount: parseFloat(recurringForm.amount),
+        frequency: recurringForm.frequency || 'monthly',
+        startDate: recurringForm.startDate,
+        endDate: recurringForm.endDate || null,
+        investmentType: recurringForm.investmentType,
+        currency: currency || 'INR'
+      }
+      
+      console.log('Sending recurring investment payload:', payload)
+      
       const response = await fetch(api('/api/investments/recurring'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: parseFloat(recurringForm.amount),
-          frequency: recurringForm.frequency,
-          startDate: recurringForm.startDate,
-          endDate: recurringForm.endDate || null,
-          investmentType: recurringForm.investmentType,
-          currency
-        })
+        body: JSON.stringify(payload)
       })
       
       if (response.ok) {
         Alert.alert('Success', 'Recurring investment created successfully')
         setShowRecurringModal(false)
-        setRecurringForm({ amount: '', frequency: 'monthly', startDate: new Date().toISOString().split('T')[0], endDate: '', investmentType: '' })
-        // Refresh recent investments
+        setRecurringForm({ 
+          amount: '', 
+          frequency: 'monthly', 
+          startDate: new Date().toISOString().split('T')[0], 
+          endDate: '', 
+          investmentType: 'SIP' 
+        })
         fetchRecentInvestments()
       } else {
-        Alert.alert('Error', 'Failed to create recurring investment')
+        const errorData = await response.json()
+        console.log('Error response:', errorData)
+        Alert.alert('Error', errorData.error || 'Failed to create recurring investment')
       }
     } catch (error) {
       console.warn('Failed to create recurring investment:', error)
@@ -140,14 +164,14 @@ const Invest = () => {
   const [investments, setInvestments] = useState(FALLBACK_INVESTMENTS)
   const [showRecurringModal, setShowRecurringModal] = useState(false)
   const [showAddInvestmentModal, setShowAddInvestmentModal] = useState(false)
-  const [addInvestmentForm, setAddInvestmentForm] = useState({ title: '', amount: '' })
+  const [addInvestmentForm, setAddInvestmentForm] = useState({ title: '', amount: '', investmentType: 'Gold' })
   const [isInvestmentOptionsExpanded, setIsInvestmentOptionsExpanded] = useState(false)
   const [recurringForm, setRecurringForm] = useState({
     amount: '',
     frequency: 'monthly',
     startDate: new Date().toISOString().split('T')[0],
     endDate: '',
-    investmentType: ''
+    investmentType: 'SIP'
   })
   const [investmentData, setInvestmentData] = useState([
     { value: 0, label: 'Jul' },
@@ -169,7 +193,13 @@ const Invest = () => {
   const [stocks, setStocks] = useState([])
   const [portfolioSummary, setPortfolioSummary] = useState({ totalValue: 0, totalCost: 0, totalProfit: 0, profitPercentage: 0 })
   const [showAddStockModal, setShowAddStockModal] = useState(false)
-  const [addStockForm, setAddStockForm] = useState({ symbol: '', name: '', quantity: '', purchasePrice: '' })
+  const [addStockForm, setAddStockForm] = useState({ symbol: '', name: '', quantity: '', purchasePrice: '', investmentType: 'Stock' })
+  const [showInvestmentTypeModal, setShowInvestmentTypeModal] = useState(false)
+  const [showStockTypeModal, setShowStockTypeModal] = useState(false)
+  const [showRecurringTypeModal, setShowRecurringTypeModal] = useState(false)
+  
+  const investmentTypes = ['Gold', 'Stock', 'Mutual Fund', 'Index Fund', 'Bond', 'ETF']
+  const recurringTypes = ['SIP', 'Recurring Deposit', 'Auto Investment', 'Monthly Investment']
   const [refreshing, setRefreshing] = useState(false)
 
   const handleAddInvestment = () => {
@@ -177,26 +207,26 @@ const Invest = () => {
   }
 
   const handleCreateInvestment = async () => {
-    if (!addInvestmentForm.title || !addInvestmentForm.amount) {
-      Alert.alert('Error', 'Please fill in title and amount')
+    if (!addInvestmentForm.title || !addInvestmentForm.amount || !addInvestmentForm.investmentType) {
+      Alert.alert('Error', 'Please fill in all fields')
       return
     }
 
     try {
-      const response = await fetch(api('/api/expenses'), {
+      const response = await fetch(api('/api/investments'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: addInvestmentForm.title,
-          category: 'Investment',
-          amount: -Math.abs(parseFloat(addInvestmentForm.amount))
+          name: addInvestmentForm.title,
+          value: parseFloat(addInvestmentForm.amount),
+          investmentType: addInvestmentForm.investmentType
         })
       })
       
       if (response.ok) {
         Alert.alert('Success', 'Investment added successfully')
         setShowAddInvestmentModal(false)
-        setAddInvestmentForm({ title: '', amount: '' })
+        setAddInvestmentForm({ title: '', amount: '', investmentType: 'Gold' })
         fetchRecentInvestments()
       } else {
         Alert.alert('Error', 'Failed to add investment')
@@ -263,14 +293,15 @@ const Invest = () => {
           symbol: addStockForm.symbol.toUpperCase(),
           name: addStockForm.name,
           quantity: parseFloat(addStockForm.quantity),
-          purchasePrice: parseFloat(addStockForm.purchasePrice)
+          purchasePrice: parseFloat(addStockForm.purchasePrice),
+          investmentType: addStockForm.investmentType
         })
       })
       
       if (response.ok) {
         Alert.alert('Success', 'Stock added successfully')
         setShowAddStockModal(false)
-        setAddStockForm({ symbol: '', name: '', quantity: '', purchasePrice: '' })
+        setAddStockForm({ symbol: '', name: '', quantity: '', purchasePrice: '', investmentType: 'Stock' })
         fetchStocks()
         fetchPortfolioSummary()
       } else {
@@ -416,7 +447,13 @@ const Invest = () => {
         </View>
 
         {/* Auto Investment Button */}
-        <TouchableOpacity style={styles.autoInvestBtn} onPress={() => setShowRecurringModal(true)}>
+        <TouchableOpacity 
+          style={styles.autoInvestBtn} 
+          onPress={() => {
+            console.log('Auto Investment button pressed')
+            setShowRecurringModal(true)
+          }}
+        >
           <Text style={styles.autoInvestText}>+ Set Up Auto Investment</Text>
         </TouchableOpacity>
 
@@ -548,13 +585,13 @@ const Invest = () => {
               keyboardType="numeric"
             />
             
-            <TextInput
-              style={styles.input}
-              placeholder="Investment Type (e.g., Index Fund)"
-              placeholderTextColor={Colors.gray}
-              value={recurringForm.investmentType}
-              onChangeText={(text) => setRecurringForm({...recurringForm, investmentType: text})}
-            />
+            <TouchableOpacity 
+              style={styles.dropdown} 
+              onPress={() => setShowRecurringTypeModal(true)}
+            >
+              <Text style={styles.dropdownText}>{recurringForm.investmentType}</Text>
+              <Ionicons name="chevron-down" size={20} color={Colors.gray} />
+            </TouchableOpacity>
             
             <TextInput
               style={styles.input}
@@ -598,6 +635,14 @@ const Invest = () => {
               onChangeText={(text) => setAddInvestmentForm({...addInvestmentForm, title: text})}
             />
             
+            <TouchableOpacity 
+              style={styles.dropdown} 
+              onPress={() => setShowInvestmentTypeModal(true)}
+            >
+              <Text style={styles.dropdownText}>{addInvestmentForm.investmentType}</Text>
+              <Ionicons name="chevron-down" size={20} color={Colors.gray} />
+            </TouchableOpacity>
+            
             <TextInput
               style={styles.input}
               placeholder="Amount"
@@ -623,11 +668,11 @@ const Invest = () => {
       <Modal visible={showAddStockModal} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Add Stock</Text>
+            <Text style={styles.modalTitle}>Add Stock/Investment</Text>
             
             <TextInput
               style={styles.input}
-              placeholder="Stock Symbol (e.g., AAPL)"
+              placeholder="Symbol (e.g., AAPL for stocks, GOLD for gold)"
               placeholderTextColor={Colors.gray}
               value={addStockForm.symbol}
               onChangeText={(text) => setAddStockForm({...addStockForm, symbol: text.toUpperCase()})}
@@ -636,15 +681,23 @@ const Invest = () => {
             
             <TextInput
               style={styles.input}
-              placeholder="Company Name"
+              placeholder="Name (e.g., Apple Inc., Gold Investment)"
               placeholderTextColor={Colors.gray}
               value={addStockForm.name}
               onChangeText={(text) => setAddStockForm({...addStockForm, name: text})}
             />
             
+            <TouchableOpacity 
+              style={styles.dropdown} 
+              onPress={() => setShowStockTypeModal(true)}
+            >
+              <Text style={styles.dropdownText}>{addStockForm.investmentType}</Text>
+              <Ionicons name="chevron-down" size={20} color={Colors.gray} />
+            </TouchableOpacity>
+            
             <TextInput
               style={styles.input}
-              placeholder="Quantity"
+              placeholder="Quantity (shares/grams)"
               placeholderTextColor={Colors.gray}
               value={addStockForm.quantity}
               onChangeText={(text) => setAddStockForm({...addStockForm, quantity: text})}
@@ -653,7 +706,7 @@ const Invest = () => {
             
             <TextInput
               style={styles.input}
-              placeholder="Purchase Price per Share"
+              placeholder="Purchase Price per Unit"
               placeholderTextColor={Colors.gray}
               value={addStockForm.purchasePrice}
               onChangeText={(text) => setAddStockForm({...addStockForm, purchasePrice: text})}
@@ -665,11 +718,77 @@ const Invest = () => {
                 <Text style={styles.cancelText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.createBtn} onPress={handleAddStock}>
-                <Text style={styles.createText}>Add Stock</Text>
+                <Text style={styles.createText}>Add</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
+      </Modal>
+
+      {/* Investment Type Dropdown Modal */}
+      <Modal visible={showInvestmentTypeModal} transparent animationType="fade">
+        <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowInvestmentTypeModal(false)}>
+          <View style={styles.dropdownModal}>
+            {investmentTypes.map((type) => (
+              <TouchableOpacity 
+                key={type} 
+                style={styles.dropdownItem}
+                onPress={() => {
+                  setAddInvestmentForm({...addInvestmentForm, investmentType: type})
+                  setShowInvestmentTypeModal(false)
+                }}
+              >
+                <Text style={styles.dropdownItemText}>{type}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Stock Type Dropdown Modal */}
+      <Modal visible={showStockTypeModal} transparent animationType="fade">
+        <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowStockTypeModal(false)}>
+          <View style={styles.dropdownModal}>
+            {investmentTypes.map((type) => (
+              <TouchableOpacity 
+                key={type} 
+                style={styles.dropdownItem}
+                onPress={() => {
+                  setAddStockForm({...addStockForm, investmentType: type})
+                  setShowStockTypeModal(false)
+                }}
+              >
+                <Text style={styles.dropdownItemText}>{type}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Recurring Type Dropdown Modal */}
+      <Modal visible={showRecurringTypeModal} transparent animationType="fade">
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1}
+          onPress={() => setShowRecurringTypeModal(false)}
+        >
+          <TouchableOpacity activeOpacity={1} onPress={() => {}}>
+            <View style={styles.dropdownModal}>
+              {recurringTypes.map((type) => (
+                <TouchableOpacity 
+                  key={type} 
+                  style={styles.dropdownItem}
+                  onPress={() => {
+                    setRecurringForm({...recurringForm, investmentType: type})
+                    setShowRecurringTypeModal(false)
+                  }}
+                >
+                  <Text style={styles.dropdownItemText}>{type}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </>
   )
@@ -1010,5 +1129,36 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
     marginTop: 20,
+  },
+  dropdown: {
+    backgroundColor: '#0d1417',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: Colors.grey,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dropdownText: {
+    color: Colors.white,
+    fontSize: 16,
+  },
+  dropdownModal: {
+    backgroundColor: Colors.black,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.grey,
+    maxHeight: 200,
+  },
+  dropdownItem: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.grey,
+  },
+  dropdownItemText: {
+    color: Colors.white,
+    fontSize: 16,
   },
 })

@@ -3,7 +3,7 @@ const Stock = require('../models/Stock');
 const User = require('../models/User');
 const requestLogger = require('../../middleware/requestLogger');
 const fetch = require('node-fetch');
-const { STOCK_PRICES, DEFAULT_STOCK_PRICE } = require('../../constants/stockPrices');
+const { STOCK_PRICES, DEFAULT_STOCK_PRICE, getCurrentGoldPrice, GOLD_RATE } = require('../../constants/stockPrices');
 
 const router = express.Router();
 router.use(requestLogger);
@@ -48,13 +48,19 @@ router.get('/', async (req, res) => {
     // Update current prices for all stocks
     const updatedStocks = await Promise.all(
       stocks.map(async (stock) => {
-        const newPrice = await getStockPrice(stock.symbol);
-        const currentPrice = newPrice || stock.currentPrice || STOCK_PRICES[stock.symbol] || DEFAULT_STOCK_PRICE;
+        let currentPrice;
         
-        if (newPrice) {
-          stock.currentPrice = currentPrice;
-          stock.lastUpdated = new Date();
-          await stock.save();
+        if (stock.investmentType === 'Gold') {
+          currentPrice = getCurrentGoldPrice();
+        } else {
+          const newPrice = await getStockPrice(stock.symbol);
+          currentPrice = newPrice || stock.currentPrice || STOCK_PRICES[stock.symbol] || DEFAULT_STOCK_PRICE;
+          
+          if (newPrice) {
+            stock.currentPrice = currentPrice;
+            stock.lastUpdated = new Date();
+            await stock.save();
+          }
         }
         
         const totalValue = stock.quantity * currentPrice;
@@ -64,6 +70,7 @@ router.get('/', async (req, res) => {
         
         return {
           ...stock.toObject(),
+          currentPrice,
           totalValue,
           totalCost,
           profit,
@@ -82,7 +89,7 @@ router.get('/', async (req, res) => {
 // POST /api/stocks - Add new stock
 router.post('/', async (req, res) => {
   try {
-    const { symbol, name, quantity, purchasePrice } = req.body;
+    const { symbol, name, quantity, purchasePrice, investmentType } = req.body;
     
     if (!symbol || !name || !quantity || !purchasePrice) {
       return res.status(400).json({ error: 'All fields are required' });
@@ -93,9 +100,13 @@ router.post('/', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
     
-    // Get current price for the stock
-    const fetchedPrice = await getStockPrice(symbol.toUpperCase());
-    const currentPrice = fetchedPrice || STOCK_PRICES[symbol.toUpperCase()] || DEFAULT_STOCK_PRICE;
+    let currentPrice;
+    if (investmentType === 'Gold') {
+      currentPrice = getCurrentGoldPrice();
+    } else {
+      const fetchedPrice = await getStockPrice(symbol.toUpperCase());
+      currentPrice = fetchedPrice || STOCK_PRICES[symbol.toUpperCase()] || DEFAULT_STOCK_PRICE;
+    }
     
     const stock = await Stock.create({
       symbol: symbol.toUpperCase(),
@@ -103,6 +114,7 @@ router.post('/', async (req, res) => {
       quantity: parseFloat(quantity),
       purchasePrice: parseFloat(purchasePrice),
       currentPrice,
+      investmentType: investmentType || 'Stock',
       userId: user._id
     });
     
@@ -137,22 +149,29 @@ router.put('/:id', async (req, res) => {
     if (quantity !== undefined) stock.quantity = parseFloat(quantity);
     if (purchasePrice !== undefined) stock.purchasePrice = parseFloat(purchasePrice);
     
-    // Update current price
-    const newPrice = await getStockPrice(stock.symbol);
-    if (newPrice) {
-      stock.currentPrice = newPrice;
-      stock.lastUpdated = new Date();
+    let currentPrice;
+    if (stock.investmentType === 'Gold') {
+      currentPrice = getCurrentGoldPrice();
+    } else {
+      const newPrice = await getStockPrice(stock.symbol);
+      currentPrice = newPrice || stock.currentPrice;
+      
+      if (newPrice) {
+        stock.currentPrice = currentPrice;
+        stock.lastUpdated = new Date();
+      }
     }
     
     await stock.save();
     
-    const totalValue = stock.quantity * stock.currentPrice;
+    const totalValue = stock.quantity * currentPrice;
     const totalCost = stock.quantity * stock.purchasePrice;
     const profit = totalValue - totalCost;
     const profitPercentage = ((profit / totalCost) * 100).toFixed(2);
     
     res.json({
       ...stock.toObject(),
+      currentPrice,
       totalValue,
       totalCost,
       profit,
@@ -192,12 +211,18 @@ router.get('/portfolio-summary', async (req, res) => {
     let totalCost = 0;
     
     for (const stock of stocks) {
-      const newPrice = await getStockPrice(stock.symbol);
-      const currentPrice = newPrice || stock.currentPrice || STOCK_PRICES[stock.symbol] || DEFAULT_STOCK_PRICE;
+      let currentPrice;
       
-      if (newPrice) {
-        stock.currentPrice = currentPrice;
-        await stock.save();
+      if (stock.investmentType === 'Gold') {
+        currentPrice = getCurrentGoldPrice();
+      } else {
+        const newPrice = await getStockPrice(stock.symbol);
+        currentPrice = newPrice || stock.currentPrice || STOCK_PRICES[stock.symbol] || DEFAULT_STOCK_PRICE;
+        
+        if (newPrice) {
+          stock.currentPrice = currentPrice;
+          await stock.save();
+        }
       }
       
       totalValue += stock.quantity * currentPrice;

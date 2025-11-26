@@ -4,7 +4,7 @@ import { Colors } from '@/constants/Colors'
 import { useAuth } from '@/hooks/useAuth'
 import { Image } from 'expo-image'
 import React, { useState, useEffect } from 'react'
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Platform} from 'react-native'
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Platform, RefreshControl} from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { BACKEND_BASE, api } from '@/constants/Backend'
 
@@ -13,14 +13,6 @@ const currencies = {
   USD: { label: 'US Dollar', symbol: '$', flag: require('@/assets/svgs/us.svg') },
   CNY: { label: 'Chinese Yuan', symbol: '¥', flag: require('@/assets/svgs/china.svg') },
 }
-
-
-
-// add this missing sampleInvestments constant
-const sampleInvestments = [
-  { id: 'inv1', name: 'Index Fund', value: 8000 },
-  { id: 'inv2', name: 'High Yield', value: 12000 },
-]
 
 // Exchange rates (static) — base currency is INR
 const exchangeRates: Record<string, number> = {
@@ -65,6 +57,8 @@ const HomeScreen = () => {
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false)
   const [monthEndSummary, setMonthEndSummary] = useState(null)
   const [showSummaryModal, setShowSummaryModal] = useState(false)
+  const [investmentData, setInvestmentData] = useState({ totalInvested: 0, totalProfit: 0 })
+  const [refreshing, setRefreshing] = useState(false)
   const categories = ['Groceries', 'Transportation', 'Utilities', 'Dining Out', 'Entertainment', 'Other']
 
   if (loading) {
@@ -79,14 +73,64 @@ const HomeScreen = () => {
     return <AuthHeader />;
   }
 
-
-
   const symbol = currencies[currency].symbol
   const remaining = budget - spent
   const progress = Math.min(1, spent / budget)
-  const investmentsTotal = sampleInvestments.reduce((s, i) => s + i.value, 0)
-  const netBalance = budget - spent + investmentsTotal
+  const netBalance = budget - spent + investmentData.totalProfit
 
+  const fetchInvestmentData = async () => {
+    try {
+      const [recentInvestments, portfolioSummary] = await Promise.all([
+        fetch(api('/api/investments/recent')).then(r => r.json()),
+        fetch(api('/api/stocks/portfolio-summary')).then(r => r.json())
+      ])
+      
+      let totalInvested = 0
+      let totalProfit = 0
+      
+      if (Array.isArray(recentInvestments)) {
+        totalInvested += recentInvestments.reduce((sum, inv) => sum + inv.amount, 0)
+        totalProfit += recentInvestments.reduce((sum, inv) => sum + inv.profit, 0)
+      }
+      
+      if (portfolioSummary) {
+        totalInvested += portfolioSummary.totalCost || 0
+        totalProfit += portfolioSummary.totalProfit || 0
+      }
+      
+      setInvestmentData({ totalInvested, totalProfit })
+    } catch (error) {
+      console.warn('Failed to fetch investment data:', error)
+    }
+  }
+
+  const fetchAllData = async () => {
+    try {
+      const [expensesList, budgetData, userData] = await Promise.all([
+        fetch(api('/api/expenses')).then(r => r.json()),
+        fetch(api('/api/budget')).then(r => r.json()),
+        fetch(api('/api/user')).then(r => r.json())
+      ])
+      
+      setExpenses(Array.isArray(expensesList) ? expensesList : [])
+      if (budgetData) {
+        setBudget(budgetData.budget || 0)
+        setSpent(budgetData.spent || 0)
+      }
+      if (userData) {
+        setCardsOwned(userData.cards || 0)
+      }
+      await fetchInvestmentData()
+    } catch (error) {
+      console.warn('Failed to load data', error)
+    }
+  }
+
+  const onRefresh = async () => {
+    setRefreshing(true)
+    await fetchAllData()
+    setRefreshing(false)
+  }
  
   const handleAddExpense = () => {
     const parsed = Number(amount)
@@ -209,28 +253,9 @@ const HomeScreen = () => {
       if (mounted) setFetching(false)
     }, 5000) // 5 second timeout
     
-    Promise.all([
-      fetch(api('/api/expenses')).then(r => r.json()),
-      fetch(api('/api/budget')).then(r => r.json()),
-      fetch(api('/api/user')).then(r => r.json())
-    ])
-      .then(([expensesList, budgetData, userData]) => {
-        if (!mounted) return
-        console.log('Expenses loaded:', expensesList)
-        // Ensure expenses is always an array, even for new accounts
-        setExpenses(Array.isArray(expensesList) ? expensesList : [])
-        if (budgetData) {
-          setBudget(budgetData.budget || 0)
-          setSpent(budgetData.spent || 0)
-        }
-        if (userData) {
-          setCardsOwned(userData.cards || 0)
-        }
-        // Check for month-end summary after loading data
-        checkMonthEndSummary()
-      })
-      .catch((err) => {
-        console.warn('Failed to load data', err)
+    fetchAllData()
+      .then(() => {
+        if (mounted) checkMonthEndSummary()
       })
       .finally(() => {
         if (mounted) {
@@ -248,7 +273,12 @@ const HomeScreen = () => {
     <>
       <Header />
       <View style={styles.container}>
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.tintColor} />
+          }
+        >
 
           {/* currency selector */}
           <View style={styles.currencyRow}>
@@ -280,7 +310,7 @@ const HomeScreen = () => {
 
             <View style={styles.overviewItem}>
               <Image source={require('@/assets/svgs/chart.svg')} style={styles.overviewIcon} contentFit="contain" />
-              <Text style={styles.overviewValue}>{formatCurrency(investmentsTotal, currency)}</Text>
+              <Text style={styles.overviewValue}>{formatCurrency(investmentData.totalInvested + investmentData.totalProfit, currency)}</Text>
               <Text style={styles.overviewLabel}>Investments</Text>
             </View>
 
@@ -305,15 +335,16 @@ const HomeScreen = () => {
                   <ActivityIndicator size="small" color={Colors.tintColor} />
                 ) : (
                   <>
-                    <Text style={styles.spent}>Spent: {formatCurrency(spent, currency)}</Text>
-                    <Text style={styles.remaining}>Remaining: {formatCurrency(remaining, currency)}</Text>
+                    <Text style={styles.spent}>Spent: {formatCurrency(spent + investmentData.totalInvested, currency)}</Text>
+                    <Text style={styles.remaining}>Remaining: {formatCurrency(remaining - investmentData.totalInvested, currency)}</Text>
+                    <Text style={styles.profit}>Profit: {formatCurrency(investmentData.totalProfit, currency)}</Text>
                   </>
                 )}
               </View>
             </View>
 
             <View style={styles.progressBar}>
-              <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
+              <View style={[styles.progressFill, { width: `${Math.min(100, ((spent + investmentData.totalInvested) / budget) * 100)}%` }]} />
             </View>
 
             <View style={styles.actionsRow}>
@@ -342,7 +373,7 @@ const HomeScreen = () => {
               </View>
             ) : (
               expenses.map((item, index) => {
-                const isIncome = item.amount < 0;
+                const isIncome = false;
                 return (
                   <View key={item._id || item.id || index} style={styles.expenseRow}>
                     <Image source={require('@/assets/svgs/wallet.svg')} style={styles.expenseIcon} />
@@ -350,8 +381,8 @@ const HomeScreen = () => {
                       <Text style={styles.expenseTitle}>{item.title}</Text>
                       <Text style={styles.expenseDetail}>{item.category} • {formatTime(item.time)}</Text>
                     </View>
-                    <Text style={[styles.expenseAmount, isIncome ? styles.income : styles.outcome]}>
-                      {isIncome ? '+' : ''}{formatCurrency(Math.abs(item.amount), currency)}
+                    <Text style={[styles.expenseAmount, styles.outcome]}>
+                      {formatCurrency(Math.abs(item.amount), currency)}
                     </Text>
                   </View>
                 );
@@ -605,6 +636,11 @@ const styles = StyleSheet.create({
     color: Colors.tintColor,
     fontSize: 14,
     fontWeight: '700',
+  },
+  profit: {
+    color: Colors.green,
+    fontSize: 12,
+    marginTop: 2,
   },
   progressBar: {
     height: 8,
