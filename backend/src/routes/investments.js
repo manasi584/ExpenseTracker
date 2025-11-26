@@ -5,6 +5,7 @@ const Expense = require('../models/Expense');
 const Budget = require('../models/Budget');
 const User = require('../models/User');
 const requestLogger = require('../../middleware/requestLogger');
+const { calculateInvestmentProfit } = require('../../constants/stockPrices');
 
 const router = express.Router();
 router.use(requestLogger);
@@ -26,7 +27,7 @@ router.get('/', async (req, res) => {
 // POST /api/investments
 router.post('/', async (req, res) => {
   try {
-    const { name, value } = req.body;
+    const { name, value, investmentType } = req.body;
     if (!name || typeof value === 'undefined') {
       return res.status(400).json({ error: 'name and value are required' });
     }
@@ -36,7 +37,12 @@ router.post('/', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
     
-    const investment = await Investment.create({ name, value, userId: user._id });
+    const investment = await Investment.create({ 
+      name, 
+      value, 
+      investmentType: investmentType || 'Index Fund',
+      userId: user._id 
+    });
     res.status(201).json(investment);
   } catch (err) {
     res.status(500).json({ error: 'Failed to create investment' });
@@ -182,23 +188,31 @@ router.get('/recent', async (req, res) => {
     
     // Add regular investments
     investments.forEach(inv => {
+      const daysHeld = Math.floor((new Date() - inv.createdAt) / (1000 * 60 * 60 * 24));
+      const profit = calculateInvestmentProfit(inv.value, inv.investmentType || inv.name, daysHeld);
+      
       recentInvestments.push({
         id: inv._id,
         name: inv.name,
         amount: inv.value,
         date: inv.createdAt.toISOString().split('T')[0],
-        profit: Math.floor(Math.random() * 500) - 100 // Mock profit calculation
+        profit: Math.round(profit),
+        type: inv.investmentType || 'Index Fund'
       });
     });
     
     // Add recurring investments
     recurringInvestments.forEach(recurring => {
+      const daysHeld = Math.floor((new Date() - recurring.startDate) / (1000 * 60 * 60 * 24));
+      const profit = calculateInvestmentProfit(recurring.amount, recurring.investmentType, daysHeld);
+      
       recentInvestments.push({
         id: `recurring-${recurring._id}`,
         name: `${recurring.investmentType} (Auto)`,
         amount: recurring.amount,
         date: recurring.startDate.toISOString().split('T')[0],
-        profit: 0
+        profit: Math.round(profit),
+        type: recurring.investmentType
       });
     });
     

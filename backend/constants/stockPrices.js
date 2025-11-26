@@ -48,7 +48,36 @@ const STOCK_PRICES = {
 
 const DEFAULT_STOCK_PRICE = 100;
 
+// Investment profit calculation based on time held and type
+const calculateInvestmentProfit = (amount, investmentType, daysHeld) => {
+  if (investmentType === 'Gold') {
+    // Gold price fluctuation simulation (₹6,800 per gram base price)
+    const baseGoldPrice = 6800;
+    const currentGoldPrice = baseGoldPrice * (1 + Math.sin(Date.now() / 86400000) * 0.05); // ±5% daily fluctuation
+    const goldProfit = (amount / baseGoldPrice) * (currentGoldPrice - baseGoldPrice);
+    return goldProfit;
+  }
+  
+  const profitRates = {
+    'Index Fund': 0.08,
+    'Mutual Fund': 0.06,
+    'Bond': 0.04,
+    'ETF': 0.07,
+    'Real Estate': 0.05,
+    'Crypto': 0.15
+  };
+  
+  const annualRate = profitRates[investmentType] || 0.05;
+  const dailyRate = annualRate / 365;
+  const profit = amount * dailyRate * daysHeld;
+  
+  // Add some random variation (±20%)
+  const variation = (Math.random() - 0.5) * 0.4;
+  return profit * (1 + variation);
+};
+
 module.exports = {
   STOCK_PRICES,
-  DEFAULT_STOCK_PRICE
+  DEFAULT_STOCK_PRICE,
+  calculateInvestmentProfit
 };
