@@ -2,28 +2,37 @@ const express = require('express');
 const Stock = require('../models/Stock');
 const User = require('../models/User');
 const requestLogger = require('../../middleware/requestLogger');
+const fetch = require('node-fetch');
+const { STOCK_PRICES, DEFAULT_STOCK_PRICE } = require('../../constants/stockPrices');
 
 const router = express.Router();
 router.use(requestLogger);
 
-// Mock stock price API (replace with real API like Alpha Vantage, Yahoo Finance, etc.)
+// Real stock price API using Alpha Vantage with error handling
 const getStockPrice = async (symbol) => {
-  // Mock prices for demo - replace with real API call
-  const mockPrices = {
-    'AAPL': 175.50,
-    'GOOGL': 2800.25,
-    'MSFT': 380.75,
-    'TSLA': 245.30,
-    'AMZN': 3200.80,
-    'NVDA': 450.60,
-    'META': 320.40,
-    'NFLX': 425.90
-  };
-  
-  // Add some random variation to simulate live prices
-  const basePrice = mockPrices[symbol] || 100;
-  const variation = (Math.random() - 0.5) * 0.1; // ±5% variation
-  return basePrice * (1 + variation);
+  try {
+    const API_KEY = process.env.ALPHA_VANTAGE_API_KEY;
+    const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${API_KEY}`;
+    
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    // Check for rate limit or API errors
+    if (data.Information && data.Information.includes('rate limit')) {
+      console.warn('Alpha Vantage rate limit exceeded, using cached price');
+      return null; // Will use cached price from database
+    }
+    
+    if (data['Global Quote'] && data['Global Quote']['05. price']) {
+      return parseFloat(data['Global Quote']['05. price']);
+    }
+    
+    console.warn(`No price data returned for ${symbol}`);
+    return null;
+  } catch (error) {
+    console.warn(`API error for ${symbol}:`, error.message);
+    return null;
+  }
 };
 
 // GET /api/stocks - Get all user stocks with current prices
@@ -39,10 +48,14 @@ router.get('/', async (req, res) => {
     // Update current prices for all stocks
     const updatedStocks = await Promise.all(
       stocks.map(async (stock) => {
-        const currentPrice = await getStockPrice(stock.symbol);
-        stock.currentPrice = currentPrice;
-        stock.lastUpdated = new Date();
-        await stock.save();
+        const newPrice = await getStockPrice(stock.symbol);
+        const currentPrice = newPrice || stock.currentPrice || STOCK_PRICES[stock.symbol] || DEFAULT_STOCK_PRICE;
+        
+        if (newPrice) {
+          stock.currentPrice = currentPrice;
+          stock.lastUpdated = new Date();
+          await stock.save();
+        }
         
         const totalValue = stock.quantity * currentPrice;
         const totalCost = stock.quantity * stock.purchasePrice;
@@ -81,7 +94,8 @@ router.post('/', async (req, res) => {
     }
     
     // Get current price for the stock
-    const currentPrice = await getStockPrice(symbol.toUpperCase());
+    const fetchedPrice = await getStockPrice(symbol.toUpperCase());
+    const currentPrice = fetchedPrice || STOCK_PRICES[symbol.toUpperCase()] || DEFAULT_STOCK_PRICE;
     
     const stock = await Stock.create({
       symbol: symbol.toUpperCase(),
@@ -124,8 +138,11 @@ router.put('/:id', async (req, res) => {
     if (purchasePrice !== undefined) stock.purchasePrice = parseFloat(purchasePrice);
     
     // Update current price
-    stock.currentPrice = await getStockPrice(stock.symbol);
-    stock.lastUpdated = new Date();
+    const newPrice = await getStockPrice(stock.symbol);
+    if (newPrice) {
+      stock.currentPrice = newPrice;
+      stock.lastUpdated = new Date();
+    }
     
     await stock.save();
     
@@ -175,9 +192,13 @@ router.get('/portfolio-summary', async (req, res) => {
     let totalCost = 0;
     
     for (const stock of stocks) {
-      const currentPrice = await getStockPrice(stock.symbol);
-      stock.currentPrice = currentPrice;
-      await stock.save();
+      const newPrice = await getStockPrice(stock.symbol);
+      const currentPrice = newPrice || stock.currentPrice || STOCK_PRICES[stock.symbol] || DEFAULT_STOCK_PRICE;
+      
+      if (newPrice) {
+        stock.currentPrice = currentPrice;
+        await stock.save();
+      }
       
       totalValue += stock.quantity * currentPrice;
       totalCost += stock.quantity * stock.purchasePrice;

@@ -1,6 +1,8 @@
 const express = require('express');
 const Investment = require('../models/Investment');
 const RecurringInvestment = require('../models/RecurringInvestment');
+const Expense = require('../models/Expense');
+const Budget = require('../models/Budget');
 const User = require('../models/User');
 const requestLogger = require('../../middleware/requestLogger');
 
@@ -83,6 +85,83 @@ router.get('/recurring', async (req, res) => {
     res.json(recurringInvestments);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch recurring investments' });
+  }
+});
+
+// GET /api/investments/chart - Investment chart data for last 6 months
+router.get('/chart', async (req, res) => {
+  try {
+    const user = await User.findOne();
+    if (!user) {
+      return res.json([]);
+    }
+    
+    const budget = await Budget.findOne({ userId: user._id });
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    
+    const [investments, recurringInvestments, investmentExpenses] = await Promise.all([
+      Investment.find({ 
+        userId: user._id, 
+        createdAt: { $gte: sixMonthsAgo } 
+      }).sort({ createdAt: 1 }),
+      RecurringInvestment.find({ 
+        userId: user._id,
+        startDate: { $gte: sixMonthsAgo }
+      }).sort({ startDate: 1 }),
+      budget ? Expense.find({
+        budgetId: budget._id,
+        category: 'Investment',
+        amount: { $lt: 0 }, // Negative amounts are investments
+        createdAt: { $gte: sixMonthsAgo }
+      }).sort({ createdAt: 1 }) : []
+    ]);
+    
+    // Get month names for last 6 months
+    const months = [];
+    const monthlyData = {};
+    
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date();
+      date.setMonth(date.getMonth() - i);
+      const monthKey = date.toISOString().slice(0, 7); // YYYY-MM format
+      const monthLabel = date.toLocaleDateString('en-US', { month: 'short' });
+      months.push({ key: monthKey, label: monthLabel });
+      monthlyData[monthKey] = 0;
+    }
+    
+    // Aggregate investment amounts by month
+    investments.forEach(inv => {
+      const monthKey = inv.createdAt.toISOString().slice(0, 7);
+      if (monthlyData.hasOwnProperty(monthKey)) {
+        monthlyData[monthKey] += inv.value;
+      }
+    });
+    
+    recurringInvestments.forEach(recurring => {
+      const monthKey = recurring.startDate.toISOString().slice(0, 7);
+      if (monthlyData.hasOwnProperty(monthKey)) {
+        monthlyData[monthKey] += recurring.amount;
+      }
+    });
+    
+    // Add investment expenses (convert negative amounts to positive)
+    investmentExpenses.forEach(expense => {
+      const monthKey = expense.createdAt.toISOString().slice(0, 7);
+      if (monthlyData.hasOwnProperty(monthKey)) {
+        monthlyData[monthKey] += Math.abs(expense.amount);
+      }
+    });
+    
+    // Format data for chart
+    const chartData = months.map(month => ({
+      value: monthlyData[month.key],
+      label: month.label
+    }));
+    
+    res.json(chartData);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch investment chart data' });
   }
 });
 

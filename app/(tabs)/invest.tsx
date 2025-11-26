@@ -237,6 +237,18 @@ const Invest = () => {
     }
   }
 
+  const fetchInvestmentChart = async () => {
+    try {
+      const response = await fetch(api('/api/investments/chart'))
+      const chartData = await response.json()
+      if (Array.isArray(chartData) && chartData.length) {
+        setInvestmentData(chartData)
+      }
+    } catch (error) {
+      console.warn('Failed to fetch investment chart:', error)
+    }
+  }
+
   const handleAddStock = async () => {
     if (!addStockForm.symbol || !addStockForm.name || !addStockForm.quantity || !addStockForm.purchasePrice) {
       Alert.alert('Error', 'Please fill in all fields')
@@ -304,7 +316,8 @@ const Invest = () => {
     await Promise.all([
       fetchStocks(),
       fetchPortfolioSummary(),
-      fetchRecentInvestments()
+      fetchRecentInvestments(),
+      fetchInvestmentChart()
     ])
     setRefreshing(false)
   }
@@ -338,13 +351,13 @@ const Invest = () => {
       })
       .catch(() => console.warn('No /api/currencies available - using fallback'));
 
-    fetch(api('/api/investment-chart'))
+    fetch(api('/api/investments/chart'))
       .then(r => r.json())
       .then(data => {
         if (!mounted) return
         if (Array.isArray(data) && data.length) setInvestmentData(data)
       })
-      .catch(() => console.warn('No /api/investment-chart available - using fallback'));
+      .catch(() => console.warn('No /api/investments/chart available - using fallback'));
 
     fetch(api('/api/expense-chart'))
       .then(r => r.json())
