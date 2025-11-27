@@ -1,5 +1,14 @@
 
 ```
+1. open expenseTrakcer in vs code 
+2. npm i in main directory , npm i in backend directory 
+2.1 Open Virtual device in android studio
+2.5 In backend driectory , do npm run dev 
+3. Main directory , npm start 
+4. press a for running android 
+
+
+
 $ npm start - to setup expo go app
 $ brew services start mongodb-community@7.0
 $ cd backend 
